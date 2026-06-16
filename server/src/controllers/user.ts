@@ -1,0 +1,135 @@
+import mongoose from "mongoose";
+import type { NextFunction, Request, Response } from "express";
+import { logActivity } from "../lib/activity";
+
+
+export const getUsersById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const currentUser = (req as any).user;
+        if (currentUser.id !== id && currentUser.role === "patient") {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+        const queryId = id?.length === 24 ? new mongoose.Types.ObjectId(id as string) : id;
+        const collection = mongoose.connection.collection("user");
+        const user = await collection.findOne(
+            { _id: queryId as mongoose.Types.ObjectId },
+            { projection: { password: 0 } }
+        )
+        if (!user) {
+            return res.status(404).json({ message: "User Not Found!!" });
+
+        }
+
+        return res.json(user);
+
+    } catch (error) {
+        console.error('Error fetching user: ', error)
+        res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+export const updateUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const { name, email, role, password, ...customFields } = req.body
+
+        const queryId = id?.length === 24 ? new mongoose.Types.ObjectId(id as string) : id;
+        const collection = mongoose.connection.collection("user");
+        const existingUser = await collection.findOne({ _id: queryId as mongoose.Types.ObjectId })
+        if (!existingUser) {
+            return res.status(404).json({ message: "User Not Found!!" });
+
+        }
+
+        const updatePayload = {
+            name,
+            email,
+            role,
+            ...customFields
+        }
+        Object.keys(updatePayload).forEach(
+            (key) => (
+                updatePayload[key] === undefined || updatePayload[key] === null
+            )
+                &&
+                delete updatePayload[key]
+
+        )
+        const result = await collection.updateOne(
+            { _id: new mongoose.Types.ObjectId(id as string) },
+            { $set: updatePayload }
+        )
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "User Not Found!!" })
+        }
+        await logActivity(
+            (req as any).user.id,
+            "Updated User",
+            `Updated user: ${id}`
+        )
+        res.json(
+            {
+                message: "User Updated Successfully!!",
+                updateUser: result,
+            }
+        )
+
+    } catch (error) {
+        console.error('Error fetching user: ', error)
+        res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+export const fetchAllUsers = async (req: Request, res: Response) => {
+    try {
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
+        const skip = (page - 1) * limit;
+        const filter: any = {};
+        const role = req.query.role as string;
+
+        if (role && role !== "all" && role !== '') {
+            filter.role = role;
+        }
+
+        const collection = mongoose.connection.collection('user');
+        const totalUsers = await collection.countDocuments(filter);
+        const users = await collection.find(
+            filter,
+            {
+                projection: {
+                    password: 0,
+                    header: 0,
+                    emailVerified: 0,
+                },
+            }
+        ).sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .toArray();
+
+
+        res.json({
+            res: users,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalUsers / limit),
+                totalData: totalUsers,
+                limit,
+            }
+        })
+    } catch (error) {
+        console.error('Error fetching users:', error)
+        res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+
