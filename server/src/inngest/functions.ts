@@ -3,6 +3,7 @@ import { inngest } from "./client";
 import { NonRetriableError } from "inngest";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { notifyUser } from "./notifyUser";
 
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY!)
@@ -102,7 +103,18 @@ export const admitPatient = inngest.createFunction(
             });
         });
 
-        
+        await step.run('send-notification', async () => {
+            await notifyUser(
+                aiAssignment.doctorId,
+                aiAssignment.nurseId,
+                "Patient Assigned",
+                `You have been assigned to a new patient: ${updatedPatient?.name}`,
+                `/patient/${patientId}`,
+                "assignment"
+            )
+        })
+
+
         return { success: true, aiAssignment, updatedPatient };
 
     },

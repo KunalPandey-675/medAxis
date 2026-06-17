@@ -16,6 +16,7 @@ import activityLogRouter from "./routes/activity";
 import { serve } from "inngest/express";
 import { inngest } from "./inngest/client";
 import { admitPatient } from "./inngest/functions";
+import notificationRouter from "./routes/notification";
 
 dotenv.config();
 
@@ -59,9 +60,11 @@ app.get("/api/me", async (req, res) => {
 // all user routes
 app.use("/api/users", userRouter)
 
-// activity log router
+// activity log routes
 app.use('/api/activity-logs', activityLogRouter)
 
+//notfication routes
+app.use('/api/notifications', notificationRouter)
 
 // inngest route
 

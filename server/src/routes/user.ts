@@ -5,11 +5,13 @@ import { checkRole } from "../middleware/checkRole";
 
 const userRouter = express.Router()
 
-userRouter.get("/:id", requireAuth, getUsersById)
+
+
+userRouter.get("/", requireAuth, checkRole(['admin', "doctor", "nurse"]), fetchAllUsers)
 
 userRouter.put("/update/:id", requireAuth, checkRole(['admin', "doctor", "nurse"]), updateUser)
 
-userRouter.get("/", requireAuth, checkRole(['admin', "doctor", "nurse"]), fetchAllUsers)
+userRouter.get("/:id", requireAuth, getUsersById)
 
 userRouter.post("/:id/admit", requireAuth, checkRole(['admin', "doctor", "nurse"]), admitPatient)
 export default userRouter
