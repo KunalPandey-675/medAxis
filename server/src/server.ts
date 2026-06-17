@@ -13,6 +13,9 @@ import { auth } from "./lib/auth";
 import { connectDB } from "./config/db";
 import userRouter from "./routes/user";
 import activityLogRouter from "./routes/activity";
+import { serve } from "inngest/express";
+import { inngest } from "./inngest/client";
+import { admitPatient } from "./inngest/functions";
 
 dotenv.config();
 
@@ -58,6 +61,14 @@ app.use("/api/users", userRouter)
 
 // activity log router
 app.use('/api/activity-logs', activityLogRouter)
+
+
+// inngest route
+
+app.use("/api/inngest", serve({
+    client: inngest,
+    functions: [admitPatient],
+}))
 
 
 
