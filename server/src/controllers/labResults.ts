@@ -1,0 +1,104 @@
+import mongoose from "mongoose";
+import type { Request, Response } from "express";
+
+import { inngest } from "../inngest/client";
+import { logActivity } from "../lib/activity";
+import labResults from "../models/labResults";
+
+export const createLabResults = async (req: Request, res: Response) => {
+    try {
+        const { patientId, testType, bodyPart, imageUrl } = req.body
+        const currentUserId = (req as any).user?.id
+        const newLabResult = await labResults.create({
+            patient: patientId,
+            testType,
+            bodyPart,
+            imageUrl,
+            status: "pending",
+            uploadedBy: currentUserId
+        })
+
+        if (testType === "X-Ray" && newLabResult) {
+            await inngest.send({
+                name: "labResult/created",
+                data: {
+                    labResultId: newLabResult._id.toString(),
+                    imageUrl: newLabResult.imageUrl,
+                    bodyPart: newLabResult.bodyPart,
+
+
+                }
+            })
+
+            await inngest.send({
+                name: "billing/charge.added",
+                data: {
+                    patientId: newLabResult.patient,
+                    description: `Radiology: ${newLabResult.bodyPart} X-Ray Analysis`,
+                    priceInCents: 15000,
+                },
+            });
+
+            await logActivity(
+                currentUserId,
+                "Uploaded Lab Result",
+                `Uploaded ${testType} for ${bodyPart}`
+            )
+        }
+
+
+        res.status(201).json(newLabResult)
+    } catch (error) {
+        console.error('Error creating lab results:', error)
+        res.status(500).json({ message: "Internal Server Error" })
+    }
+}
+
+export const getPatientLabResults = async (req: Request, res: Response) => {
+    try {
+        const { patientId } = req.params;
+        const results = await labResults.find({ patient: patientId }).sort({
+            createdAt: -1,
+        });
+        res.status(200).json(results);
+
+    } catch (error) {
+        console.error('Error fetching Lab results:', error)
+        res.status(500).json({
+            message: "Internal Server Error"
+        })
+    }
+}
+
+export const updateLabResult = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { aiAnalysis, doctorNotes, status } = req.body;
+        const updatedResult = await labResults.findOneAndUpdate(
+            { _id: id },
+            {
+                $set: {
+                    ...(aiAnalysis && { aiAnalysis }),
+                    ...(doctorNotes && { doctorNotes }),
+                    ...(status && { status }),
+                },
+            },
+            { returnDocument: "after" },
+        );
+
+        if (!updatedResult) {
+            return res.status(404).json({ message: "Lab result not found" });
+        }
+
+        // TODO: notify users
+        await logActivity(
+            (req as any).user.id,
+            "Updated Lab Result",
+            `Updated lab result ${id} with status ${status || "N/A"}`,
+        );
+        res.status(200).json(updatedResult);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

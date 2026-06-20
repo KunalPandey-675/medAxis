@@ -4,6 +4,9 @@ import { NonRetriableError } from "inngest";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { notifyUser } from "./notifyUser";
+import labResults from "../models/labResults";
+import invoice from "../models/invoice";
+
 
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY!)
@@ -119,3 +122,111 @@ export const admitPatient = inngest.createFunction(
 
     },
 );
+
+
+export const analyzeXRayJob = inngest.createFunction(
+    {
+        id: "analyze-xray",
+        triggers: [{ event: "labResult/created" }]
+    },
+    async ({ event, step }) => {
+        const { labResultId, imageUrl, bodyPart } = event.data;
+
+        const imageBase64 = await step.run("fetch-image", async () => {
+            const response = await fetch(imageUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            return Buffer.from(arrayBuffer).toString("base64");
+        });
+
+
+        const aiAnalysis = await step.run("call-gemini", async () => {
+            // gemini-1.5-flash is fast and excellent at multimodal (image) tasks
+            const model = genAI.getGenerativeModel({
+                model: "gemini-3-flash-preview",
+            });
+
+            const prompt = `You are an expert AI radiologist. Analyze this ${bodyPart} x-ray image. Provide a structured response: \n1. Key Findings\n2. Potential Abnormalities\n3. Summary.\nKeep it clinical, concise, and end with a disclaimer.`;
+
+            const imageParts = [
+                {
+                    inlineData: {
+                        data: imageBase64,
+                        mimeType: "image/jpeg", // Assuming JPEG/PNG
+                    },
+                },
+            ];
+            console.log("Starting Gemini analysis");
+            const result = await model.generateContent([prompt, ...imageParts]);
+            console.log("Gemini returned");
+            return result.response.text();
+        });
+
+
+        const updatedLab = await step.run("update-db", async () => {
+            const updatedLabResult = await labResults
+                .findByIdAndUpdate(
+                    labResultId,
+                    { aiAnalysis, status: "analyzed" },
+                    { new: true },
+                )
+                .lean(); // Use lean() since we are going to modify the object
+
+            if (!updatedLabResult) {
+                throw new NonRetriableError("Lab result not found");
+            }
+
+            // 2. Manually fetch the Patient from the 'user' collection
+            const patient = await mongoose.connection.collection("user").findOne(
+                { _id: new mongoose.Types.ObjectId(updatedLabResult.patient) },
+                { projection: { password: 0, emailVerified: 0 } }, // Exclude sensitive fields
+            );
+
+            // 3. Attach the patient data to the result (mimicking populate)
+            const resultWithPatient = {
+                ...updatedLabResult,
+                patient: patient || null, // Replace the ID with the actual user object
+            };
+
+            // Now you can use it or send it
+            return resultWithPatient;
+
+        });
+
+        await step.run("send-notification", async () => {
+            await notifyUser(
+                updatedLab?.patient?.assignedDoctorId.toString() || "",
+                updatedLab?.patient?.assignedNurseId.toString() || "",
+                "Lab Result Analyzed",
+                `Your lab result for ${updatedLab?.testType} has been analyzed.`,
+                `/patients`,
+                "lab_result",
+            );
+        });
+    }
+)
+
+export const addChargeToInvoice = inngest.createFunction(
+    { id: "add-medical-charge", triggers: { event: "billing/charge.added" } },
+    async ({ event, step }) => {
+        const { patientId, description, priceInCents } = event.data
+        if (!patientId || !priceInCents) {
+            throw new NonRetriableError("Missing required charge information.");
+        }
+        let inv = await invoice.findOne({ patientId, status: "draft" })
+        await step.run("create invoice", async () => {
+            if (!inv) {
+                inv = new invoice({ patientId, items: [], totalAmount: 0 });
+            }
+            inv.items.push({
+                description,
+                quantity: 1,
+                unitPrice: priceInCents,
+                totalPrice: priceInCents,
+            })
+            inv.totalAmount += priceInCents;
+            await inv.save()
+        })
+
+        return { success: true, invoiceId: inv?._id.toString() }
+    }
+)

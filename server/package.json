@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "watch": "bun --watch server.ts",
+    "start:inngest": "npx inngest-cli@latest dev",
     "start:server": "nodemon --exec bun run src/server.ts"
   },
   "devDependencies": {
