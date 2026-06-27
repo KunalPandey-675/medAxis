@@ -37,7 +37,7 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { createActityLog, triggerAdmission, updateUser } from "@/lib/api";
-// import { socket } from "@/lib/socket";
+import { socket } from "@/lib/socket";
 
 interface UserModalProps {
     role: Role;
@@ -199,7 +199,8 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                     admissionReason: data.medicalHistory || "General Admission",
                 });
             }
-            // socket.emit("notify_user_created");
+
+            socket.emit("notify_user_created");
             toast.success(`${roleLabel} created successfully!`);
             activityMutation.mutate({
                 userId: createdUser.user.id,

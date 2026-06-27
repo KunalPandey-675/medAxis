@@ -7,6 +7,6 @@ import { checkRole } from "../middleware/checkRole";
 const activityLogRouter = express.Router()
 
 activityLogRouter.get('/', requireAuth, checkRole(['admin']), getActivityLogs);
-activityLogRouter.put('/create', requireAuth, addActivityLog)
+activityLogRouter.post('/create', requireAuth, addActivityLog)
 
 export default activityLogRouter

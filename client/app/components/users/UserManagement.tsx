@@ -2,8 +2,7 @@ import { authClient } from "@/lib/auth-client";
 import type { Role, User, UserStatus } from "@/types";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUsers } from "@/lib/api";
-// import { createActityLog, getUsers } from "@/lib/api";
+import { createActityLog, getUsers } from "@/lib/api";
 import Loader from "@/components/global/Loader";
 import {
     Card,
@@ -29,8 +28,8 @@ import StatsCards from "../global/StatCards";
 import GlobalSearch from "@/components/global/GlobalSearch";
 import CustomPagination from "@/components/global/CustomPagination";
 import CreateUserModal from "./CreateUserModal";
-// import { socket } from "@/lib/socket";
-// import { DetailsSheet } from "./DetailsSheet";
+import { socket } from "@/lib/socket";
+import { DetailsSheet } from "./DetailsSheet";
 
 interface UserManagementProps {
     role: Role;
@@ -64,28 +63,28 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
     const pagination = data?.pagination;
 
     // socket.io listener for real-time updates
-    // useEffect(() => {
-    //     if (!socket.connected) socket.connect();
+    useEffect(() => {
+        if (!socket.connected) socket.connect();
 
-    //     const handleUpdate = () => refetch();
+        const handleUpdate = () => refetch();
 
-    //     socket.on("notify_user_updated", handleUpdate);
-    //     socket.on("notify_user_created", handleUpdate);
+        socket.on("notify_user_updated", handleUpdate);
+        socket.on("notify_user_created", handleUpdate);
 
-    //     return () => {
-    //         socket.off("notify_user_updated", handleUpdate);
-    //         socket.off("notify_user_created", handleUpdate);
-    //     };
-    // }, [refetch]);
+        return () => {
+            socket.off("notify_user_updated", handleUpdate);
+            socket.off("notify_user_created", handleUpdate);
+        };
+    }, [refetch]);
 
     // activity mutation
-    // const activityMutation = useMutation({
-    //     mutationFn: createActityLog,
-    //     onError: (error) => {
-    //         console.log("Activity Log Error:", error);
-    //         // toast.error(error.message || "Failed to create activity log");
-    //     },
-    // });
+    const activityMutation = useMutation({
+        mutationFn: createActityLog,
+        onError: (error) => {
+            console.log("Activity Log Error:", error);
+            toast.error(error.message || "Failed to create activity log");
+        },
+    });
 
     if (isLoading) {
         return (
@@ -118,22 +117,22 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
                 await authClient.admin.unbanUser({ userId });
                 toast.success("User has been unbanned successfully.");
                 refetch();
-                // activityMutation.mutate({
-                //     userId: session?.user.id!,
-                //     action: "ban",
-                //     details: `Unbanned user with ID: ${userId}`,
-                // });
+                activityMutation.mutate({
+                    userId: session?.user.id!,
+                    action: "ban",
+                    details: `Unbanned user with ID: ${userId}`,
+                });
                 setLoading(false);
             } else {
                 await authClient.admin.banUser({ userId });
                 toast.success("User has been banned successfully.");
                 refetch();
                 setLoading(false);
-                // activityMutation.mutate({
-                //     userId: session?.user.id!,
-                //     action: "ban",
-                //     details: `Banned user with ID: ${userId}`,
-                // });
+                activityMutation.mutate({
+                    userId: session?.user.id!,
+                    action: "ban",
+                    details: `Banned user with ID: ${userId}`,
+                });
             }
         } catch (error) {
             setLoading(false);
@@ -154,11 +153,11 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
                 toast.success("User has been deleted successfully.");
                 refetch();
                 setLoading(false);
-                // activityMutation.mutate({
-                //     userId: session?.user.id!,
-                //     action: "delete",
-                //     details: `Deleted user with ID: ${userId}`,
-                // });
+                activityMutation.mutate({
+                    userId: session?.user.id!,
+                    action: "delete",
+                    details: `Deleted user with ID: ${userId}`,
+                });
             }
         } catch (error) {
             setLoading(false);
@@ -172,11 +171,11 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
             {/* startcards */}
             <StatsCards data={users} />
             {/* userDetailsSheet */}
-            {/* <DetailsSheet
+            <DetailsSheet
                 user={selectedUser}
                 isOpen={isSheetOpen}
                 onClose={() => setIsSheetOpen(false)}
-            /> */}
+            />
             <Card className="card shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>

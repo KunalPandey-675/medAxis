@@ -67,6 +67,15 @@ export const updateUser = async (req: Request, res: Response) => {
         if (result.matchedCount === 0) {
             return res.status(404).json({ message: "User Not Found!!" })
         }
+
+        
+        const io = req.app.get("io");
+        if (io && result.modifiedCount > 0) {
+            io.emit("notify_user_updated");
+        }
+
+
+
         await logActivity(
             (req as any).user.id,
             "Updated User",

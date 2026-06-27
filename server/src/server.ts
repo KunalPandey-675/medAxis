@@ -19,11 +19,21 @@ import { addChargeToInvoice, admitPatient, analyzeXRayJob } from "./inngest/func
 import notificationRouter from "./routes/notification";
 import labResultsRouter from "./routes/labResults";
 import invoiceRouter from "./routes/invoice";
+import { createServer } from "http";
+import { getIO, initSocket } from "./lib/socket";
+import { uploadRouter } from "./lib/uploadthing";
+import { createRouteHandler } from "uploadthing/express";
+import uploadthingRouter from "./routes/uploadthing";
 
 dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
+
+initSocket(httpServer);
+
+app.set("io", getIO());
 
 // cors setup
 app.use(cors({
@@ -83,12 +93,21 @@ app.use("/api/inngest", serve({
 }))
 
 
+// upload routes
+app.use("/api/uploadthing", createRouteHandler({ router: uploadRouter }));
+
+app.use("/api/uploadthing/delete", uploadthingRouter);
 
 // database connection 
 connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`)
-    })
-}).catch((error) => {
-    console.error(`Failed to connect : ${(error as Error).message}`)
+    httpServer.listen(PORT, () => {
+        console.log(
+            `🚀 Server + Socket.IO running in ${process.env.NODE_ENV} mode on port ${PORT}`,
+        );
+    });
 })
+    .catch((error) => {
+        console.error(
+            `Failed to connect to the database: ${(error as Error).message}`,
+        );
+    });

@@ -89,3 +89,76 @@ export const createActityLog = async (data: {
     if (!res.ok) throw new Error("Failed to create activity log");
     return res.json();
 };
+
+export const getPatientLabResults = async (
+    patientId: string,
+): Promise<LabResult[]> => {
+    const res = await fetch(`${API_URL}/lab-results/patient/${patientId}`, {
+        method: "GET",
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch lab results");
+    return res.json();
+};
+
+
+export const updateLabResult = async ({
+    id,
+    data,
+}: {
+    id: string;
+    data: { doctorNotes?: string; status?: string };
+}) => {
+    const res = await fetch(`${API_URL}/lab-results/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to update lab result");
+    return res.json();
+};
+
+
+
+export const createLabResult = async (data: {
+    patientId: string;
+    testType: string;
+    bodyPart: string;
+    imageUrl: string;
+    aiAnalysis?: string;
+}) => {
+    const res = await fetch(`${API_URL}/lab-results`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        credentials: "include", // Important for Better Auth cookies
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to create lab result");
+    }
+
+    return res.json();
+};
+
+export const deleteFile = async ({ file }: { file: string }) => {
+  const res = await fetch(`${API_URL}/uploadthing/delete`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ fileUrl: file }),
+    credentials: "include", // Important for Better Auth cookies
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to delete file");
+  }
+
+  return res.json();
+};

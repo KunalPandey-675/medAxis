@@ -17,6 +17,13 @@ export const createLabResults = async (req: Request, res: Response) => {
             status: "pending",
             uploadedBy: currentUserId
         })
+        if (!newLabResult) {
+            return res.status(400).json({ message: "Failed to create lab result" });
+        }
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("lab_result_added")
+        }
 
         if (testType === "X-Ray" && newLabResult) {
             await inngest.send({
@@ -90,6 +97,13 @@ export const updateLabResult = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Lab result not found" });
         }
 
+        if (!updatedResult) {
+            return res.status(404).json({ message: "Lab result not found" });
+        }
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("lab_result_updated", updatedResult);
+        }
         // TODO: notify users
         await logActivity(
             (req as any).user.id,
