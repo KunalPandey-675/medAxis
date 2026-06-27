@@ -7,6 +7,9 @@ export default [
     layout("routes/protected/layout.tsx", [
         route("dashboard", "routes/protected/Dashboard.tsx"),
         route("admins", "routes/protected/Admins.tsx"),
+        route("doctors", "routes/protected/Doctors.tsx"),
+        route("nurses", "routes/protected/Nurses.tsx"),
+        route("patients", "routes/protected/Patients.tsx"),
 
     ])
 ] satisfies RouteConfig;
