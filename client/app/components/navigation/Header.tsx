@@ -5,7 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
-// import Notifications from "./Notifications";
+import Notifications from "./Notifications";
 
 const Header = () => {
     const { pathname } = useLocation();
@@ -31,8 +31,7 @@ const Header = () => {
                     <Separator orientation="vertical" />
                     <ThemeToggle />
                     <Separator orientation="vertical" />
-                    {/* {session?.user && <Notifications user={session?.user} />} */}
-                    Notifications
+                    {session?.user && <Notifications user={session?.user} />}
                     <Separator orientation="vertical" />
                     <Link
                         to={`/profile/${session?.user.id}`}

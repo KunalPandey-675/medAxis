@@ -1,4 +1,5 @@
 import Notification from "../models/notification"
+import { getIO } from "../lib/socket";
 
 export const notifyUser = async (
     doctorId: string,
@@ -23,4 +24,8 @@ export const notifyUser = async (
         link,
         type,
     })
+
+    getIO().emit(`new_notification_${doctorId}`);
+    getIO().emit(`new_notification_${nurseId}`);
 }
+

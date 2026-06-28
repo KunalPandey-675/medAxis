@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { STATUS_CONFIG } from "./statusBadge";
 import { toast } from "sonner";
-import StatsCards from "../global/StatCards";
+import StatsCards from "../global/StatsCards";
 import GlobalSearch from "@/components/global/GlobalSearch";
 import CustomPagination from "@/components/global/CustomPagination";
 import CreateUserModal from "./CreateUserModal";

@@ -242,3 +242,20 @@ export const polarPortalLink = async (userId: string) => {
     if (!res.ok) throw new Error("Failed to fetch polar portal link");
     return res.json();
 };
+
+export const fetchNotifications = async () => {
+    const res = await fetch(`${API_URL}/notifications`, {
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch notifications");
+    return res.json(); // Expected response: { notifications:[], unreadCount: 0 }
+};
+
+export const markAsRead = async (id: string) => {
+    const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+        method: "POST",
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to mark as read");
+    return res.json();
+};
