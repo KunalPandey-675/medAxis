@@ -24,7 +24,7 @@ export const getUsers = async (params: {
     }).toString();
 
     const res = await fetch(`${API_URL}/users?${query}`, {
-        credentials: "include", // Important for Better Auth cookies
+        credentials: "include",
     });
 
     if (!res.ok) throw new Error("Failed");
@@ -64,7 +64,7 @@ export const updateUser = async ({ userId, userData }: UpdateUserParams) => {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
-        credentials: "include", // Important for Better Auth cookies
+        credentials: "include",
     });
 
     if (!res.ok) {
@@ -84,7 +84,7 @@ export const createActityLog = async (data: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-        credentials: "include", // Important for Better Auth cookies
+        credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to create activity log");
     return res.json();
@@ -119,8 +119,6 @@ export const updateLabResult = async ({
     return res.json();
 };
 
-
-
 export const createLabResult = async (data: {
     patientId: string;
     testType: string;
@@ -134,7 +132,7 @@ export const createLabResult = async (data: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-        credentials: "include", // Important for Better Auth cookies
+        credentials: "include",
     });
 
     if (!res.ok) {
@@ -146,19 +144,101 @@ export const createLabResult = async (data: {
 };
 
 export const deleteFile = async ({ file }: { file: string }) => {
-  const res = await fetch(`${API_URL}/uploadthing/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ fileUrl: file }),
-    credentials: "include", // Important for Better Auth cookies
-  });
+    const res = await fetch(`${API_URL}/uploadthing/delete`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fileUrl: file }),
+        credentials: "include",
+    });
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Failed to delete file");
-  }
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to delete file");
+    }
 
-  return res.json();
+    return res.json();
+};
+
+export const getActivityLogs = async (params: {
+    page?: number;
+    limit?: number;
+}): Promise<PaginatedResponse<ActivityLog>> => {
+    const query = new URLSearchParams({
+        page: (params.page || 1).toString(),
+        limit: (params.limit || 10).toString(),
+    }).toString();
+
+    const res = await fetch(`${API_URL}/activity-logs?${query}`, {
+        credentials: "include",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch activity logs");
+
+    return res.json();
+};
+
+
+export const getUserById = async (userId: string) => {
+    const res = await fetch(`${API_URL}/users/profile/${userId}`, {
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch user");
+    return res.json();
+};
+
+export const getMyActiveInvoice = async () => {
+    const res = await fetch(`${API_URL}/invoices/my-active-invoice`, {
+        credentials: "include",
+    });
+    if (!res.ok) {
+        if (res.status === 404) return null; // No active invoice
+        throw new Error("Failed to fetch invoice");
+    }
+    return res.json();
+};
+
+export const createCheckoutSession = async (invoiceId: string) => {
+    const res = await fetch(`${API_URL}/invoices/${invoiceId}/checkout`, {
+        method: "POST",
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to initiate checkout");
+    return res.json();
+};
+
+export const getBillingHistory = async (userId: string) => {
+    const res = await fetch(`${API_URL}/invoices/history/${userId}`, {
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch billing history");
+    return res.json();
+};
+
+
+export const getAllInvoices = async (data?: {
+    page?: number;
+    limit?: number;
+}): Promise<PaginatedResponse<invoice>> => {
+    const query = new URLSearchParams({
+        page: (data?.page || 1).toString(),
+        limit: (data?.limit || 10).toString(),
+    }).toString();
+
+    const res = await fetch(`${API_URL}/invoices?${query}`, {
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch invoices");
+    return res.json();
+};
+
+
+export const polarPortalLink = async (userId: string) => {
+    const res = await fetch(`${API_URL}/users/polar-portal/${userId}`, {
+        method: "GET",
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch polar portal link");
+    return res.json();
 };

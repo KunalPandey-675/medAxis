@@ -2,9 +2,26 @@ import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { admin } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
+import {
+  polar,
+  checkout,
+  portal,
+  usage,
+  webhooks,
+} from "@polar-sh/better-auth";
+import { Polar } from "@polar-sh/sdk";
+import invoice from "../models/invoice";
 
 const client = new MongoClient(process.env.MONGO_URL!);
 const db = client.db();
+
+export const polarClient = new Polar({
+  accessToken: process.env.POLAR_ACCESS_TOKEN,
+  // Use 'sandbox' if you're using the Polar Sandbox environment
+  // Remember that access tokens, products, etc. are completely separated between environments.
+  // Access tokens obtained in Production are for instance not usable in the Sandbox environment.
+  server: "sandbox",
+});
 
 export const auth = betterAuth({
   database: mongodbAdapter(db),
@@ -15,6 +32,37 @@ export const auth = betterAuth({
     admin({
       defaultRole: "patient",
       adminRole: ["admin", "superadmin"],
+    }),
+    polar({
+      client: polarClient,
+      createCustomerOnSignUp: true,
+      use: [
+        checkout({
+          authenticatedUsersOnly: true,
+        }),
+        portal({
+          returnUrl: `${process.env.FRONTEND_URL}/dashboard`,
+        }),
+        usage(),
+        webhooks({
+          secret: process.env.POLAR_WEBHOOK_SECRET!,
+          onPayload: async ({ data, type }) => {
+            // console.log("Received Polar webhook:", type, data);
+            if (type === "order.paid" && data.paid) {
+              const invoiceId = data.metadata?.hospitalInvoiceId;
+              if (invoiceId) {
+                // Update your Mongo DB!
+                await invoice.findByIdAndUpdate(invoiceId, {
+                  status: "paid",
+                });
+                console.log(
+                  `✅ Invoice ${invoiceId} marked as PAID via Polar!`,
+                );
+              }
+            }
+          },
+        }),
+      ],
     }),
   ],
 

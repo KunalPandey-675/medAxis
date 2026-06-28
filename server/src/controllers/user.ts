@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type { Request, Response } from "express";
 import { logActivity } from "../lib/activity";
 import { inngest } from "../inngest/client";
+import { auth, polarClient } from "../lib/auth";
 
 
 export const getUsersById = async (req: Request, res: Response) => {
@@ -68,7 +69,7 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "User Not Found!!" })
         }
 
-        
+
         const io = req.app.get("io");
         if (io && result.modifiedCount > 0) {
             io.emit("notify_user_updated");
@@ -164,3 +165,18 @@ export const admitPatient = async (req: Request, res: Response) => {
     }
 }
 
+export const getPolarPortalLink = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
+        const result = await polarClient.customerSessions.create({
+            externalCustomerId: userId as string, // The internal Polar Customer ID
+        });
+        res.json({ polarPortalUrl: result.customerPortalUrl });
+    } catch (error) {
+        console.error("Error fetching Polar portal link:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
