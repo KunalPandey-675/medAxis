@@ -13,6 +13,29 @@ export default [
         route("activities-log", "routes/protected/ActivitiesLog.tsx"),
         route("profile/:id", "routes/protected/Profile.tsx"),
         route("financial-history", "routes/protected/FinancialHistory.tsx"),
+        
+        // Under Construction Routes
+        route("pharmacy", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy" }),
+        route("pharmacy/dispense", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy-dispense" }),
+        route("pharmacy/inventory", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy-inventory" }),
+        route("pharmacy/prescriptions", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy-prescriptions" }),
+        
+        route("lab", "routes/protected/UnderConstruction.tsx", { id: "uc-lab" }),
+        route("lab/requests", "routes/protected/UnderConstruction.tsx", { id: "uc-lab-requests" }),
+        route("lab/results", "routes/protected/UnderConstruction.tsx", { id: "uc-lab-results" }),
+        
+        route("appointments", "routes/protected/UnderConstruction.tsx", { id: "uc-appointments" }),
+        route("telemedicine", "routes/protected/UnderConstruction.tsx", { id: "uc-telemedicine" }),
+        
+        route("settings", "routes/protected/UnderConstruction.tsx", { id: "uc-settings" }),
+        route("settings/general", "routes/protected/UnderConstruction.tsx", { id: "uc-settings-general" }),
+        route("settings/roles", "routes/protected/UnderConstruction.tsx", { id: "uc-settings-roles" }),
+        route("settings/billing", "routes/protected/UnderConstruction.tsx", { id: "uc-settings-billing" }),
 
-    ])
+        // Fallback for missing protected routes
+        route("*", "routes/NotFound.tsx", { id: "not-found-protected" }),
+    ]),
+    
+    // Fallback for any non-protected routes as well
+    route("*", "routes/NotFound.tsx", { id: "not-found-public" }),
 ] satisfies RouteConfig;

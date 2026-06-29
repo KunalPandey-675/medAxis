@@ -56,28 +56,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     };
 
     return (
-        <Sidebar variant="inset" collapsible="icon" {...props}>
-            <SidebarHeader>
+        <Sidebar variant="inset" collapsible="icon" className="border-r border-border/50 shadow-sm" {...props}>
+            <SidebarHeader className="py-4 px-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             size="lg"
                             asChild
-                            // FIX 1: Add !justify-center for collapsed state
-                            className="group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:p-2!"
+                            className="group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:p-2! hover:bg-transparent"
                         >
-                            <Link to="/dashboard">
-                                <div className="bg-primary text-white flex aspect-square size-8 items-center justify-center rounded-lg shadow-blue-500/30">
-                                    <Activity className="size-4" />
+                            <Link to="/dashboard" className="flex items-center gap-3">
+                                <div className="bg-primary text-primary-foreground flex aspect-square size-10 items-center justify-center rounded-xl premium-shadow">
+                                    <Activity className="size-5" />
                                 </div>
-                                {/* Hide text when collapsed */}
                                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                                    <span className="truncate font-bold text-slate-800 dark:text-slate-100">
+                                    <span className="truncate font-heading font-bold text-xl tracking-tight text-foreground">
                                         MedAxis
                                     </span>
-                                    <span className="truncate text-xs text-slate-500">
-                                        {userRole.charAt(0).toUpperCase() + userRole.slice(1)}{" "}
-                                        Portal
+                                    <span className="truncate text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
+                                        {userRole} Portal
                                     </span>
                                 </div>
                             </Link>
@@ -85,12 +82,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="px-3 gap-2">
                 {/* Group 1 */}
                 {filteredMain.length > 0 && (
                     <SidebarGroup>
-                        <SidebarGroupLabel>Platform</SidebarGroupLabel>
-                        <SidebarMenu>
+                        <SidebarGroupLabel className="text-xs font-semibold tracking-wider uppercase text-muted-foreground/70 mb-2">Platform</SidebarGroupLabel>
+                        <SidebarMenu className="gap-1.5">
                             {filteredMain.map((item) => {
                                 const isActive = isGroupActive(item.items);
 
@@ -106,21 +103,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                 <SidebarMenuButton
                                                     tooltip={item.title}
                                                     isActive={isActive}
-                                                    size="lg" // Use lg to match the design
-                                                    // FIX 2: Center content when collapsed
-                                                    className="group-data-[collapsible=icon]:justify-center!"
+                                                    size="lg"
+                                                    className={`group-data-[collapsible=icon]:justify-center! rounded-xl transition-all duration-200 ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
                                                 >
-                                                    {item.icon && <item.icon />}
+                                                    {item.icon && <item.icon className="size-5 opacity-80" />}
 
-                                                    <span className="group-data-[collapsible=icon]:hidden">
+                                                    <span className="group-data-[collapsible=icon]:hidden font-medium">
                                                         {item.title}
                                                     </span>
 
-                                                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                                                    <ChevronRight className="ml-auto opacity-50 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                                                 </SidebarMenuButton>
                                             </CollapsibleTrigger>
                                             <CollapsibleContent>
-                                                <SidebarMenuSub>
+                                                <SidebarMenuSub className="pr-0 mr-0 border-l border-border/50 ml-4 pl-3">
                                                     {item.items?.map((subItem) => {
                                                         const isChildActive = pathname === subItem.url;
                                                         return (
@@ -128,7 +124,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                                 <SidebarMenuSubButton
                                                                     asChild
                                                                     isActive={isChildActive}
-                                                                    className="my-1"
+                                                                    className={`my-1 rounded-lg transition-colors ${isChildActive ? 'text-primary font-medium bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
                                                                 >
                                                                     <Link to={subItem.url}>
                                                                         <span>{subItem.title}</span>
@@ -148,9 +144,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 )}
                 {/* Grpup 2 */}
                 {filteredAdmin.length > 0 && (
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Administration</SidebarGroupLabel>
-                        <SidebarMenu>
+                    <SidebarGroup className="mt-4">
+                        <SidebarGroupLabel className="text-xs font-semibold tracking-wider uppercase text-muted-foreground/70 mb-2">Administration</SidebarGroupLabel>
+                        <SidebarMenu className="gap-1.5">
                             {filteredAdmin.map((item) => {
                                 const isActive = isGroupActive(item.items);
                                 return (
@@ -166,18 +162,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                     tooltip={item.title}
                                                     isActive={isActive}
                                                     size="lg"
-                                                    // FIX 3: Center content when collapsed
-                                                    className="group-data-[collapsible=icon]:justify-center!"
+                                                    className={`group-data-[collapsible=icon]:justify-center! rounded-xl transition-all duration-200 ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
                                                 >
-                                                    {item.icon && <item.icon />}
-                                                    <span className="group-data-[collapsible=icon]:hidden">
+                                                    {item.icon && <item.icon className="size-5 opacity-80" />}
+                                                    <span className="group-data-[collapsible=icon]:hidden font-medium">
                                                         {item.title}
                                                     </span>
-                                                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                                                    <ChevronRight className="ml-auto opacity-50 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                                                 </SidebarMenuButton>
                                             </CollapsibleTrigger>
                                             <CollapsibleContent>
-                                                <SidebarMenuSub>
+                                                <SidebarMenuSub className="pr-0 mr-0 border-l border-border/50 ml-4 pl-3">
                                                     {item.items?.map((subItem) => {
                                                         const isChildActive = pathname === subItem.url;
                                                         return (
@@ -185,7 +180,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                                 <SidebarMenuSubButton
                                                                     asChild
                                                                     isActive={isChildActive}
-                                                                    className="my-1"
+                                                                    className={`my-1 rounded-lg transition-colors ${isChildActive ? 'text-primary font-medium bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
                                                                 >
                                                                     <Link to={subItem.url}>
                                                                         <span>{subItem.title}</span>
@@ -205,7 +200,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 )}
             </SidebarContent>
             {session?.user && (
-                <SidebarFooter>
+                <SidebarFooter className="p-3 border-t border-border/50">
                     <NavUser
                         user={{
                             name: session?.user?.name!,

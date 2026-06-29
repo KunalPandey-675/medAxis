@@ -13,6 +13,7 @@ import { AppSidebar } from '@/components/navigation/app-sidebar';
 import { getRouteConfig, navConfig } from '@/components/navigation/nav-config';
 import { toast } from 'sonner';
 import Header from '@/components/navigation/Header';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const Layout = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -42,7 +43,7 @@ const Layout = () => {
 
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader label="Initializing Med Axis..." />
       </div>
     );
@@ -53,10 +54,21 @@ const Layout = () => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-card/50">
+      <SidebarInset className="bg-background relative flex flex-col min-h-screen overflow-hidden transition-all duration-300 ease-in-out">
         <Header />
-        <main className="px-4 my-4">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full h-full"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </SidebarInset>
     </SidebarProvider>

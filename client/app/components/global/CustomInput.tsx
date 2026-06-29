@@ -38,14 +38,14 @@ export function CustomInput<T extends FieldValues>({
         <Field data-invalid={fieldState.invalid} className="space-y-1.5">
           <FieldLabel
             htmlFor={name}
-            className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1"
+            className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1"
           >
             {label}
           </FieldLabel>
 
           <div className="relative group">
             {startIcon && (
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors pointer-events-none z-10">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-300 pointer-events-none z-10">
                 {startIcon}
               </div>
             )}
@@ -57,24 +57,21 @@ export function CustomInput<T extends FieldValues>({
               {...props}
               className={cn(
                 // Base Layout
-                "w-full rounded-2xl py-6", // py-6 handles height better for this design
+                "w-full rounded-xl py-6 bg-muted/20 border-border/50", 
                 startIcon ? "pl-12" : "pl-4",
-                "pr-4 text-sm transition-all outline-none shadow-sm",
+                "pr-4 text-sm font-medium transition-all duration-300 outline-none shadow-sm",
+                "backdrop-blur-md",
 
-                // // Light Mode Styles
-                // "bg-slate-50 border-slate-100 text-slate-900 placeholder:text-slate-400",
-                // "focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary",
+                // Focus/Hover States
+                "hover:bg-muted/30 hover:border-border",
+                "focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary focus-visible:bg-background",
 
-                // // Dark Mode Styles
-                // "dark:border-slate-800 dark:text-slate-100 dark:placeholder:text-slate-600",
-                // "dark:focus:bg-slate-950 dark:focus:ring-primary/20 dark:focus:border-primary",
-
-                // // Disabled State
-                // "disabled:opacity-50 dark:disabled:opacity-50",
+                // Disabled State
+                "disabled:opacity-50 disabled:cursor-not-allowed",
 
                 // Error State
                 fieldState.invalid &&
-                  "border-red-300 focus:border-red-500 focus:ring-red-200 dark:border-red-900 dark:focus:ring-red-900/30",
+                "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 text-destructive placeholder:text-destructive/50",
 
                 className,
               )}
@@ -82,10 +79,10 @@ export function CustomInput<T extends FieldValues>({
           </div>
 
           {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-[11px] font-medium text-muted-foreground ml-1">{description}</p>
           )}
 
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          {fieldState.invalid && <FieldError className="ml-1 text-xs" errors={[fieldState.error]} />}
         </Field>
       )}
     />

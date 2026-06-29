@@ -12,41 +12,39 @@ const Header = () => {
     const { data: session } = authClient.useSession();
 
     return (
-        <header className="flex h-16 items-center gap-2 border-b w-full px-3">
-            <SidebarTrigger className="size-9" />
-            <Separator orientation="vertical" />
-            <div className="flex justify-between w-full">
-                <div className="flex flex-col space-y-0.5">
-                    <h1 className="capitalize font-bold text-lg">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/40 glass px-4 md:px-6">
+            <SidebarTrigger className="size-9 shadow-sm" />
+            <Separator orientation="vertical" className="h-6 opacity-50" />
+            <div className="flex justify-between w-full items-center">
+                <div className="flex flex-col">
+                    <h1 className="capitalize font-heading font-bold text-xl md:text-2xl tracking-tight text-foreground">
                         {pathname.split("/").includes("profile")
                             ? "Profile"
                             : pathname.split("/").pop()}
                     </h1>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs md:text-sm text-muted-foreground">
                         Welcome back, {session?.user.role === "doctor" ? "Dr. " : ""}
-                        {session?.user.name}
+                        <span className="font-medium text-foreground/80">{session?.user.name}</span>
                     </p>
                 </div>
-                <div className="flex gap-2 items-center">
-                    <Separator orientation="vertical" />
+                <div className="flex gap-1 md:gap-2 items-center">
                     <ThemeToggle />
-                    <Separator orientation="vertical" />
                     {session?.user && <Notifications user={session?.user} />}
-                    <Separator orientation="vertical" />
+                    <Separator orientation="vertical" className="h-6 mx-1 md:mx-2 opacity-50 hidden md:block" />
                     <Link
                         to={`/profile/${session?.user.id}`}
                         className={
                             buttonVariants({
                                 variant: "ghost",
-                            }) + " flex items-center gap-2 rounded-lg px-2 py-6"
+                            }) + " flex items-center gap-3 rounded-xl px-2 py-6 interactive-hover hover:bg-muted/50"
                         }
                     >
-                        <Avatar className="h-8 w-8 rounded-lg">
+                        <Avatar className="h-9 w-9 rounded-xl border border-border/50 shadow-sm">
                             <AvatarImage
                                 src={session?.user.image || ""}
                                 alt={session?.user.name}
                             />
-                            <AvatarFallback className="rounded-lg text-primary">
+                            <AvatarFallback className="rounded-xl text-primary bg-primary/10 font-bold">
                                 {session?.user.name
                                     .split(" ")
                                     .map((n) => n[0])
@@ -54,9 +52,9 @@ const Header = () => {
                             </AvatarFallback>
                         </Avatar>
 
-                        <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-bold">{session?.user.name}</span>
-                            <span className="truncate text-xs text-muted-foreground capitalize">
+                        <div className="hidden md:grid flex-1 text-left text-sm leading-tight">
+                            <span className="truncate font-bold tracking-tight">{session?.user.name}</span>
+                            <span className="truncate text-[10px] uppercase tracking-wider font-semibold text-primary">
                                 {session?.user.role}
                             </span>
                         </div>

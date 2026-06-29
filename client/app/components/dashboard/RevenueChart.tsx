@@ -8,9 +8,11 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Cell,
 } from "recharts";
 import { getAllInvoices } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function RevenueChart() {
   const { data, isLoading, isError } = useQuery({
@@ -72,57 +74,82 @@ export function RevenueChart() {
 
   if (isLoading)
     return (
-      <div className="h-75 flex items-center justify-center">
-        <Loader2 className="animate-spin" />
+      <div className="h-72 w-full flex items-center justify-center">
+        <Skeleton className="w-full h-full rounded-xl" />
       </div>
     );
   if (isError)
     return (
-      <div className="h-75 flex items-center justify-center text-red-500">
-        Error loading chart
+      <div className="h-72 w-full flex items-center justify-center text-destructive bg-destructive/10 rounded-xl border border-destructive/20">
+        <p className="font-medium text-sm">Error loading revenue data</p>
       </div>
     );
+
   return (
-    <div className="h-75 w-full mt-4">
+    <div className="h-72 w-full mt-6">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
           margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
         >
+          <defs>
+            <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--primary)" stopOpacity={1} />
+              <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.6} />
+            </linearGradient>
+          </defs>
           <CartesianGrid
-            strokeDasharray="3 3"
+            strokeDasharray="4 4"
             vertical={false}
-            stroke="#e2e8f0"
+            stroke="var(--border)"
+            opacity={0.5}
           />
           <XAxis
             dataKey="name"
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tick={{ fill: "#94a3b8" }}
+            tick={{ fill: "var(--muted-foreground)" }}
+            dy={10}
           />
           <YAxis
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tick={{ fill: "#94a3b8" }}
+            tick={{ fill: "var(--muted-foreground)" }}
             tickFormatter={(value) => `$${value}`}
+            dx={-10}
           />
           <Tooltip
-            cursor={{ fill: "rgba(0,0,0,0.02)" }}
-            contentStyle={{
-              borderRadius: "12px",
-              border: "1px solid #e2e8f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            cursor={{ fill: "var(--muted)", opacity: 0.2 }}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="rounded-xl border border-border bg-card/80 backdrop-blur-md p-3 shadow-xl">
+                    <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1">
+                      {label}
+                    </p>
+                    <p className="text-xl font-heading font-bold text-foreground">
+                      ${Number(payload[0].value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
             }}
-            formatter={(val: number) => [`$${val.toFixed(2)}`, "Revenue"]}
           />
           <Bar
             dataKey="total"
-            fill="#2563eb"
-            radius={[4, 4, 0, 0]}
-            barSize={32}
-          />
+            fill="url(#colorTotal)"
+            radius={[6, 6, 0, 0]}
+            barSize={28}
+            animationDuration={1500}
+            animationEasing="ease-out"
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} className="transition-all duration-300 hover:opacity-80" />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

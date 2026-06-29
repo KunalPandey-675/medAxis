@@ -2,6 +2,7 @@ import { Users, Activity, UserPlus, UserCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types";
+import { motion } from "framer-motion";
 
 // Helper function to format trend percentage
 const formatTrend = (current: number, previous: number) => {
@@ -14,6 +15,11 @@ const formatTrend = (current: number, previous: number) => {
         value: `${isUp ? "+" : ""}${percentage.toFixed(1)}%`,
         isUp,
     };
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
 const StatsCards = ({ data }: { data: User[] }) => {
@@ -94,19 +100,17 @@ const StatsCards = ({ data }: { data: User[] }) => {
             trend: totalTrend.value,
             trendUp: totalTrend.isUp,
             icon: Users,
-            iconColor: "text-blue-600 dark:text-blue-400",
-            iconBg: "bg-blue-100 dark:bg-blue-900/30",
+            iconColor: "text-blue-500",
+            iconBg: "bg-blue-500/10",
         },
         {
             label: isPatient ? "Active Treatments" : "Active Duty",
             value: activeCurrent.toLocaleString(),
             trend: activeTrend.value,
-            // For active treatments, a decrease might be seen as "good" health-wise,
-            // but conventionally we just map green to 'isUp' for UI consistency.
             trendUp: activeTrend.isUp,
             icon: Activity,
-            iconColor: "text-teal-600 dark:text-teal-400",
-            iconBg: "bg-teal-100 dark:bg-teal-900/30",
+            iconColor: "text-teal-500",
+            iconBg: "bg-teal-500/10",
         },
         {
             label: "New This Month",
@@ -114,8 +118,8 @@ const StatsCards = ({ data }: { data: User[] }) => {
             trend: newTrend.value,
             trendUp: newTrend.isUp,
             icon: UserPlus,
-            iconColor: "text-purple-600 dark:text-purple-400",
-            iconBg: "bg-purple-100 dark:bg-purple-900/30",
+            iconColor: "text-purple-500",
+            iconBg: "bg-purple-500/10",
         },
         {
             label: rateLabel,
@@ -123,48 +127,61 @@ const StatsCards = ({ data }: { data: User[] }) => {
             trend: rateTrend.value,
             trendUp: rateTrend.isUp,
             icon: UserCheck,
-            iconColor: "text-green-600 dark:text-green-400",
-            iconBg: "bg-green-100 dark:bg-green-900/30",
+            iconColor: "text-green-500",
+            iconBg: "bg-green-500/10",
         },
     ];
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div 
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+            initial="hidden"
+            animate="visible"
+            variants={{
+                visible: {
+                    transition: {
+                        staggerChildren: 0.1
+                    }
+                }
+            }}
+        >
             {statsData.map((stat, index) => (
-                <Card key={index} className="border-none shadow-sm rounded-lg card">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                            {/* Icon Box */}
-                            <div className={cn("p-3 rounded-2xl", stat.iconBg)}>
-                                <stat.icon className={cn("w-6 h-6", stat.iconColor)} />
+                <motion.div key={index} variants={itemVariants}>
+                    <Card className="border-border shadow-sm rounded-2xl bg-card overflow-hidden interactive-hover premium-shadow">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start mb-6">
+                                {/* Icon Box */}
+                                <div className={cn("p-3 rounded-xl", stat.iconBg)}>
+                                    <stat.icon className={cn("w-5 h-5", stat.iconColor)} />
+                                </div>
+
+                                {/* Trend Badge */}
+                                <div
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-full text-xs font-bold tracking-wide",
+                                        stat.trendUp
+                                            ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                                            : "bg-destructive/10 text-destructive",
+                                    )}
+                                >
+                                    {stat.trend}
+                                </div>
                             </div>
 
-                            {/* Trend Badge */}
-                            <div
-                                className={cn(
-                                    "px-2.5 py-1 rounded-full text-xs font-bold",
-                                    stat.trendUp
-                                        ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                                        : "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400",
-                                )}
-                            >
-                                {stat.trend}
+                            {/* Label & Value */}
+                            <div className="space-y-1.5">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                    {stat.label}
+                                </p>
+                                <h3 className="text-3xl font-heading font-bold text-foreground tracking-tight">
+                                    {stat.value}
+                                </h3>
                             </div>
-                        </div>
-
-                        {/* Label & Value */}
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                {stat.label}
-                            </p>
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {stat.value}
-                            </h3>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </motion.div>
             ))}
-        </div>
+        </motion.div>
     );
 };
 
