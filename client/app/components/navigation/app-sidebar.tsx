@@ -1,6 +1,6 @@
 "use client";
 import { Link, useLocation } from "react-router";
-import { Activity, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import { NavUser } from "@/components/navigation/nav-user";
 import {
@@ -66,8 +66,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             className="group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:p-2! hover:bg-transparent"
                         >
                             <Link to="/dashboard" className="flex items-center gap-3">
-                                <div className="bg-primary text-primary-foreground flex aspect-square size-10 items-center justify-center rounded-xl premium-shadow">
-                                    <Activity className="size-5" />
+                                <div className="flex aspect-square size-14 items-center justify-center">
+                                    <img
+                                        src="/logo.svg"
+                                        alt="MedAxis Logo"
+                                        className="size-8"
+                                    />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                                     <span className="truncate font-heading font-bold text-xl tracking-tight text-foreground">

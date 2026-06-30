@@ -21,6 +21,7 @@ import {
 const XRayUploadModal = ({ patientId }: { patientId: string }) => {
   const [imageUrl, setImageUrl] = useState("");
   const [open, setOpen] = useState(false);
+  const [hasFiles, setHasFiles] = useState(false);
   const form = useForm({ defaultValues: { bodyPart: "", notes: "" } });
 
   const mutation = useMutation({
@@ -74,8 +75,10 @@ const XRayUploadModal = ({ patientId }: { patientId: string }) => {
         {!imageUrl ? (
           <UploadDropzone
             endpoint="imageUploader"
+            onChange={(files) => setHasFiles(files.length > 0)}
             onClientUploadComplete={(res) => {
               setImageUrl(res[0].ufsUrl);
+              setHasFiles(false);
               toast.success("Image Uploaded successful");
             }}
             headers={async () => {
@@ -88,7 +91,25 @@ const XRayUploadModal = ({ patientId }: { patientId: string }) => {
               toast.error(`ERROR! ${error.message}`);
               console.error("Upload Error:", error);
             }}
-            className="border-dashed border-slate-300 dark:border-slate-500 ut-label:text-blue-600"
+            content={{
+              label: "Drop your X-Ray image here",
+              allowedContent: "Images up to 4MB",
+              button({ ready, isUploading }) {
+                if (isUploading) return "Uploading...";
+                if (ready && hasFiles) return "Upload X-Ray";
+                if (ready) return "Choose X-Ray";
+                return "Getting ready...";
+              },
+            }}
+            appearance={{
+              container:
+                "border-2 border-dashed border-border rounded-xl p-6 bg-muted/30 hover:bg-muted/50 transition-colors",
+              uploadIcon: "text-primary",
+              label: "text-foreground font-medium",
+              allowedContent: "text-muted-foreground text-sm",
+              button:
+                "bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium transition-colors ut-uploading:cursor-not-allowed ut-uploading:opacity-70",
+            }}
           />
         ) : (
           <div className="space-y-4">

@@ -7,9 +7,10 @@ import { notifyUser } from "./notifyUser";
 import labResults from "../models/labResults";
 import invoice from "../models/invoice";
 
-
-
+import Groq from "groq-sdk";
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY!)
+
 
 export const admitPatient = inngest.createFunction(
     { id: "admit-patient", triggers: [{ event: "patient/admitted" }] },
@@ -142,7 +143,7 @@ export const analyzeXRayJob = inngest.createFunction(
         const aiAnalysis = await step.run("call-gemini", async () => {
             // gemini-1.5-flash is fast and excellent at multimodal (image) tasks
             const model = genAI.getGenerativeModel({
-                model: "gemini-3-flash-preview",
+                model: "gemini-2.5-flash",
             });
 
             const prompt = `You are an expert AI radiologist. Analyze this ${bodyPart} x-ray image. Provide a structured response: \n1. Key Findings\n2. Potential Abnormalities\n3. Summary.\nKeep it clinical, concise, and end with a disclaimer.`;
