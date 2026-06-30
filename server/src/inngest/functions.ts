@@ -138,7 +138,20 @@ export const analyzeXRayJob = inngest.createFunction(
                 model: "gemini-2.5-flash",
             });
 
-            const prompt = `You are an expert AI radiologist. Analyze this ${bodyPart} x-ray image. Provide a structured response: \n1. Key Findings\n2. Potential Abnormalities\n3. Summary.\nKeep it clinical, concise, and end with a disclaimer.`;
+            const prompt = `You are an expert AI radiologist. Analyze this ${bodyPart} X-ray image and respond in EXACTLY this markdown format — do not deviate:
+
+1. **Key Findings:**
+* <list every relevant finding as a separate bullet — include as many as the image warrants>
+
+2. **Potential Abnormalities:**
+* <list every potential abnormality as a separate bullet — include as many as the image warrants>
+
+3. **Summary:**
+* <concise overall summary of the findings>
+
+**Disclaimer:** This AI-generated report is based solely on the provided image and does not constitute a medical diagnosis or substitute for professional medical advice, diagnosis, or treatment. Clinical correlation and a comprehensive medical evaluation by a qualified healthcare professional are essential.
+
+Keep the language clinical and concise. Use only the structure above.`;
 
             const imageParts = [
                 {

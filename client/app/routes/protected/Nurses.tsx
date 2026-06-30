@@ -1,16 +1,16 @@
 import UserManagement from "@/components/users/UserManagement";
 
 export function meta() {
-  return [{ title: "Doctors" }];
+  return [{ title: "Nurses" }];
 }
-const Doctors = () => {
+const Nurses = () => {
   return (
     <UserManagement
-      role="doctor"
-      title="Doctors"
-      description="Manage doctor accounts"
+      role="nurse"
+      title="Nurses"
+      description="Manage nurses accounts"
     />
   );
 };
 
-export default Doctors;
+export default Nurses;

@@ -28,7 +28,7 @@ export function DetailsSheet({ user, isOpen, onClose }: UserDetailsSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
-        className="inset-y-4! right-4! h-auto! sm:max-w-xl rounded-xl border shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col min-w-120"
+        className="inset-y-2! sm:inset-y-4! right-[2vw]! h-[calc(100vh-1rem)]! sm:h-[calc(100vh-2rem)]! w-[96vw]! sm:right-4! sm:w-full! sm:max-w-xl! rounded-xl border shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col"
         side="right"
       >
         <div className="p-6 bg-slate-50 dark:bg-slate-900 border-b shrink-0">
@@ -64,7 +64,7 @@ export function DetailsSheet({ user, isOpen, onClose }: UserDetailsSheetProps) {
             </div>
           </SheetHeader>
         </div>
-        <ScrollArea className="min-h-150">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-6">
             <Tabs defaultValue="profile" className="w-full">
               <TabsList

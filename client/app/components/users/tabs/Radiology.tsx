@@ -21,6 +21,65 @@ import { toast } from "sonner";
 import type { LabResult } from "@/types";
 import { socket } from "@/lib/socket";
 
+// ── Parses the AI markdown-style response into clean JSX ──────────────────────
+const FormattedAIAnalysis = ({ text }: { text: string }) => {
+  // Split on the Disclaimer boundary first
+  const disclaimerSplit = text.split(/\*\*Disclaimer:\*\*/i);
+  const mainText = disclaimerSplit[0].trim();
+  const disclaimer = disclaimerSplit[1]?.trim();
+
+  // Split main text into numbered sections: "1. **Heading:** body"
+  const sections = mainText
+    .split(/(?=\d+\.\s+\*\*)/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-3">
+      {sections.map((section, i) => {
+        // Extract heading and body
+        const headingMatch = section.match(/^\d+\.\s+\*\*(.+?):\*\*\s*([\s\S]*)$/);
+        if (!headingMatch) return <p key={i} className="text-xs text-slate-600 dark:text-slate-400">{section}</p>;
+
+        const heading = headingMatch[1];
+        const body = headingMatch[2].trim();
+
+        // Split body into bullet points (lines starting with "* ")
+        const bullets = body
+          .split(/\*\s+/)
+          .map((b) => b.trim())
+          .filter(Boolean);
+
+        return (
+          <div key={i}>
+            <p className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-wide mb-1">
+              {heading}
+            </p>
+            <ul className="space-y-1">
+              {bullets.map((bullet, j) => (
+                <li key={j} className="flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0" />
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+
+      {disclaimer && (
+        <div className="mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-900/40">
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 italic leading-relaxed">
+            ⚠️ {disclaimer}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const Radiology = ({ patientId }: { patientId: string }) => {
   const { data: session } = authClient.useSession();
   const isDoctor =
@@ -138,9 +197,11 @@ const Radiology = ({ patientId }: { patientId: string }) => {
                 <div className="flex items-center gap-2 mb-1 text-indigo-600 dark:text-indigo-400 font-bold text-[11px] uppercase tracking-wider">
                   <BrainCircuit className="h-3.5 w-3.5" /> AI Analysis
                 </div>
-                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                  {xray.aiAnalysis || "Analysis pending..."}
-                </p>
+                {xray.aiAnalysis ? (
+                  <FormattedAIAnalysis text={xray.aiAnalysis} />
+                ) : (
+                  <p className="text-xs text-slate-500 italic">Analysis pending...</p>
+                )}
               </div>
               {/* 2. Doctor Notes Box */}
               <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-md relative group">

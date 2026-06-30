@@ -216,7 +216,7 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl min-w-xl max-h-[98vh] overflow-y-auto card">
+            <DialogContent className="sm:max-w-xl w-[95vw] max-h-[98vh] overflow-y-auto card">
                 <DialogHeader>
                     <DialogTitle>
                         {isEdit ? "Edit" : "Add New"} {roleLabel}
