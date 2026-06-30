@@ -72,6 +72,31 @@ export const updateUser = async ({ userId, userData }: UpdateUserParams) => {
     return res.json();
 };
 
+export const createPatient = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    age?: string;
+    gender?: string;
+    bloodgroup?: string;
+    medicalHistory?: string;
+    status?: string;
+}): Promise<{ user: { _id: string; id: string; name: string; email: string } }> => {
+    const res = await fetch(`${API_URL}/users/create-patient`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to create patient");
+    }
+
+    return res.json();
+};
+
 export const createActityLog = async (data: {
     userId: string;
     action: string;

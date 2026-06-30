@@ -36,7 +36,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
-import { createActityLog, triggerAdmission, updateUser } from "@/lib/api";
+import { createActityLog, createPatient, triggerAdmission, updateUser } from "@/lib/api";
 import { socket } from "@/lib/socket";
 
 interface UserModalProps {
@@ -162,34 +162,62 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
             });
         } else {
             setIsCreating(true);
-            const { error, data: createdUser } = await authClient.admin.createUser({
-                name: data.name,
-                email: data.email,
-                password: data.password!,
-                // @ts-ignore
-                role: role,
-                data: {
-                    ...payload,
-                },
-            });
+            let createdUserId: string;
+            let createdUserName: string;
 
-            if (error) {
-                setIsCreating(false);
-                throw error;
-            }
-            if (createdUser && role === "patient" && data.status === "admitted") {
-                admitMutation.mutate({
-                    patientId: createdUser.user.id,
-                    admissionReason: data.medicalHistory || "General Admission",
+            if (role === "patient") {
+                // Use dedicated endpoint — no admin role required
+                const result = await createPatient({
+                    name: data.name,
+                    email: data.email,
+                    password: data.password!,
+                    age: data.age,
+                    gender: data.gender,
+                    bloodgroup: data.bloodgroup,
+                    medicalHistory: data.medicalHistory,
+                    status: data.status,
+                }).catch((err) => {
+                    setIsCreating(false);
+                    throw err;
                 });
+
+                createdUserId = result.user._id;
+                createdUserName = result.user.name;
+
+                if (data.status === "admitted") {
+                    admitMutation.mutate({
+                        patientId: createdUserId,
+                        admissionReason: data.medicalHistory || "General Admission",
+                    });
+                }
+            } else {
+                // Non-patient roles — requires admin/superadmin session
+                const { error, data: createdUser } = await authClient.admin.createUser({
+                    name: data.name,
+                    email: data.email,
+                    password: data.password!,
+                    // @ts-ignore
+                    role: role,
+                    data: {
+                        ...payload,
+                    },
+                });
+
+                if (error) {
+                    setIsCreating(false);
+                    throw error;
+                }
+
+                createdUserId = createdUser!.user.id;
+                createdUserName = createdUser!.user.name;
             }
 
             socket.emit("notify_user_created");
             toast.success(`${roleLabel} created successfully!`);
             activityMutation.mutate({
-                userId: createdUser.user.id,
+                userId: createdUserId,
                 action: "create",
-                details: `${roleLabel} account created for ${createdUser.user.name}`,
+                details: `${roleLabel} account created for ${createdUserName}`,
             });
             setOpen(false);
             form.reset();

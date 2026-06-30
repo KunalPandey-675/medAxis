@@ -164,6 +164,56 @@ export const admitPatient = async (req: Request, res: Response) => {
     }
 }
 
+export const createPatient = async (req: Request, res: Response) => {
+    try {
+        const caller = (req as any).user;
+        const allowedRoles = ["admin", "superadmin", "doctor"];
+        if (!allowedRoles.includes(caller.role)) {
+            return res.status(403).json({ message: "Forbidden: Only doctors or admins can create patients" });
+        }
+
+        const { name, email, password, age, gender, bloodgroup, medicalHistory, status } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: "name, email and password are required" });
+        }
+
+        const { user: newUser } = await auth.api.createUser({
+            body: {
+                name,
+                email,
+                password,
+                role: "patient",
+                data: {
+                    age: age || "",
+                    gender: gender || "",
+                    bloodgroup: bloodgroup || "",
+                    medicalHistory: medicalHistory || "",
+                    status: status || "admitted",
+                },
+            },
+        });
+
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("notify_user_created");
+        }
+
+        await logActivity(
+            caller.id,
+            "Created Patient",
+            `Patient account created for ${newUser.name} (${newUser.email}) by ${caller.role} ${caller.name}`
+        );
+
+        return res.status(201).json({ user: { ...newUser, _id: newUser.id } });
+    } catch (error: any) {
+        console.error("Error creating patient:", error);
+        const status = error?.statusCode || 500;
+        const message = error?.message || "Server error";
+        return res.status(status).json({ message });
+    }
+};
+
 export const getPolarPortalLink = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;

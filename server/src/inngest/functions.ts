@@ -17,6 +17,10 @@ export const admitPatient = inngest.createFunction(
     async ({ event, step }) => {
         const { patientId, admissionReason } = event.data;
 
+        if (!patientId || !mongoose.Types.ObjectId.isValid(patientId)) {
+            throw new NonRetriableError(`Invalid patientId received: "${patientId}". Must be a 24-char hex ObjectId.`);
+        }
+
         const collection = await mongoose.connection.collection("user")
 
         const data = await step.run("fetch-hospital-data", async () => {
