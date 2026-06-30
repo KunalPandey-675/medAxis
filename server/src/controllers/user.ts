@@ -152,7 +152,6 @@ export const admitPatient = async (req: Request, res: Response) => {
             name: "patient/admitted",
             data: { patientId: id, admissionReason },
         });
-        // log who did these
         await logActivity(
             (req as any).user.id,
             "Admitted Patient",

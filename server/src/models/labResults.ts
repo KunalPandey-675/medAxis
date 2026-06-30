@@ -21,11 +21,9 @@ const LabResultSchema: Schema = new Schema(
     bodyPart: { type: String },
     imageUrl: { type: String },
 
-    // AI & Notes
     aiAnalysis: { type: String, default: "Pending Analysis..." },
     doctorNotes: { type: String },
 
-    // Workflow Status
     status: {
       type: String,
       enum: ["pending", "analyzed", "reviewed"],

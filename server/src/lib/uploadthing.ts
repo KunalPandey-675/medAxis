@@ -4,7 +4,6 @@ import { createUploadthing, type FileRouter } from "uploadthing/express";
 const f = createUploadthing();
 
 export const uploadRouter = {
-  // Define as many FileRoutes as you like, each with a unique routeSlug
   imageUploader: f({
     image: { maxFileSize: "16MB", maxFileCount: 1 },
   })
@@ -13,7 +12,7 @@ export const uploadRouter = {
       if (!authHeader) {
         throw new Error("Unauthorized");
       }
-      const token = authHeader.substring(7); // Remove "Bearer " prefix
+      const token = authHeader.substring(7);
 
       const session = await mongoose.connection.collection("session").findOne({
         token: token,
@@ -22,8 +21,6 @@ export const uploadRouter = {
         console.error("Upload rejected: Session not found in DB");
         throw new Error("Unauthorized");
       }
-      // check expireAt
-
       if (new Date(session.expiresAt) < new Date()) {
         console.error("Upload rejected: Session expired");
         throw new Error("Unauthorized");
@@ -33,9 +30,6 @@ export const uploadRouter = {
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log(`✅ Uploaded by Doctor ID: ${metadata.uploaderId}`);
-      console.log(`✅ File URL: ${file.ufsUrl}`);
-
       return { url: file.ufsUrl };
     }),
 } satisfies FileRouter;

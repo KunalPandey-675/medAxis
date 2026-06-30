@@ -96,15 +96,10 @@ export const updateLabResult = async (req: Request, res: Response) => {
         if (!updatedResult) {
             return res.status(404).json({ message: "Lab result not found" });
         }
-
-        if (!updatedResult) {
-            return res.status(404).json({ message: "Lab result not found" });
-        }
         const io = req.app.get("io");
         if (io) {
             io.emit("lab_result_updated", updatedResult);
         }
-        // TODO: notify users
         await logActivity(
             (req as any).user.id,
             "Updated Lab Result",
@@ -112,7 +107,7 @@ export const updateLabResult = async (req: Request, res: Response) => {
         );
         res.status(200).json(updatedResult);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.status(500).json({ message: "Internal server error" });
     }
 };

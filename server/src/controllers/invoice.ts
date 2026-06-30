@@ -70,7 +70,6 @@ export const allBilling = async (req: Request, res: Response) => {
             )
             .toArray();
 
-        // 4. Create a Lookup Map for instant access
         const userMap = new Map<string, any>();
         users.forEach((user) => {
             userMap.set(user._id.toString(), user);
@@ -80,7 +79,7 @@ export const allBilling = async (req: Request, res: Response) => {
             const user = userMap.get(billing.patientId.toString());
             return {
                 ...billing,
-                user: user || null, // If no user found, set user to null
+                user: user || null,
             };
         });
 
@@ -102,7 +101,6 @@ export const allBilling = async (req: Request, res: Response) => {
 export const createCheckoutSession = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        // 1. Fetch the unique invoice from your database
         const userInvoice = await invoice.findById(id);
         if (!userInvoice || userInvoice.status === "paid") {
             return res
@@ -110,7 +108,6 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
                 .json({ message: "Invalid or already paid invoice" });
         }
 
-        // 2. CREATE CHECKOUT USING THE POLAR SDK
         const session = await auth.api.getSession({
             headers: fromNodeHeaders(req.headers),
         });
@@ -120,13 +117,13 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
         }
 
         const checkout = await polarClient.checkouts.create({
-            externalCustomerId: session.user.id, // Link the checkout to the authenticated user
+            externalCustomerId: session.user.id,
             products: [process.env.POLAR_PRODUCT_ID!],
             prices: {
                 [process.env.POLAR_PRODUCT_ID!]: [
                     {
                         amountType: "fixed",
-                        priceAmount: userInvoice.totalAmount, // e.g. 15000 = $150.00 (in cents)
+                        priceAmount: userInvoice.totalAmount,
                         priceCurrency: "usd",
                     },
                 ],
@@ -135,18 +132,14 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
                 hospitalInvoiceId: userInvoice._id.toString(),
                 patientId: userInvoice.patientId,
             },
-            // Where to redirect after success
             successUrl: `${process.env.FRONTEND_URL}/profile/${userInvoice.patientId}?checkout_id={CHECKOUT_ID}`,
             returnUrl: `${process.env.FRONTEND_URL}/profile/${userInvoice.patientId}`,
         });
 
-        // Redirect customer to checkout.url
-        // 3. Save checkout ID to Mongo
         userInvoice.status = "pending_payment";
         userInvoice.polarCheckoutId = checkout.id;
         await userInvoice.save();
 
-        // 4. Return the checkout URL to the frontend
         res.json({ checkoutUrl: checkout.url });
     } catch (error) {
         console.error("Polar Checkout Error:", error);

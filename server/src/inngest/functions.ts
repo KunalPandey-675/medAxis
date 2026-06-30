@@ -1,4 +1,4 @@
-import mongoose, { model } from "mongoose";
+import mongoose from "mongoose";
 import { inngest } from "./client";
 import { NonRetriableError } from "inngest";
 
@@ -41,17 +41,15 @@ export const admitPatient = inngest.createFunction(
                 model: "gemini-3-flash-preview",
                 generationConfig: { responseMimeType: "application/json" }
             })
-            // patient data
             const patientDataStr = `Age: ${data.patient!.age}, Gender:${data.patient!.gender}, Histor: ${data.patient!.medicalHistory}, Issue:${admissionReason}`
 
-            // doctor data
             const doctorDataStr = data.doctors
                 .map(
                     (d) =>
                         `ID: ${d._id.toString()}, Name: ${d.name}, Spec: ${d.specialization}, Dept: ${d.department}`,
                 )
                 .join("\n");
-            // nurse data
+
             const nurseDataStr = data.nurses
                 .map(
                     (n) =>
@@ -59,7 +57,6 @@ export const admitPatient = inngest.createFunction(
                 )
                 .join("\n");
 
-            // prompt
             const prompt = `
         You are an expert Hospital Triage AI. Match this patient with the best Doctor and Nurse.
         PATIENT: ${patientDataStr}
@@ -76,9 +73,7 @@ export const admitPatient = inngest.createFunction(
         }
       `;
             const result = await model.generateContent(prompt);
-            // result in text format
             const text = result.response.text();
-            // Clean up markdown just in case Gemini adds ```json
             const cleanJson = text
                 .replace(/```json/g, "")
                 .replace(/```/g, "")
@@ -87,7 +82,6 @@ export const admitPatient = inngest.createFunction(
         })
 
         const updatedPatient = await step.run("update-database", async () => {
-            // payload
             const updatePayload = {
                 status: "admitted",
                 admissionReason,
@@ -101,7 +95,6 @@ export const admitPatient = inngest.createFunction(
                 { _id: new mongoose.Types.ObjectId(patientId) },
                 { $set: updatePayload },
             );
-            // Return the updated document
             return await collection.findOne({
                 _id: new mongoose.Types.ObjectId(patientId),
             });
@@ -141,7 +134,6 @@ export const analyzeXRayJob = inngest.createFunction(
 
 
         const aiAnalysis = await step.run("call-gemini", async () => {
-            // gemini-1.5-flash is fast and excellent at multimodal (image) tasks
             const model = genAI.getGenerativeModel({
                 model: "gemini-2.5-flash",
             });
@@ -152,13 +144,11 @@ export const analyzeXRayJob = inngest.createFunction(
                 {
                     inlineData: {
                         data: imageBase64,
-                        mimeType: "image/jpeg", // Assuming JPEG/PNG
+                        mimeType: "image/jpeg",
                     },
                 },
             ];
-            console.log("Starting Gemini analysis");
             const result = await model.generateContent([prompt, ...imageParts]);
-            console.log("Gemini returned");
             return result.response.text();
         });
 
@@ -170,27 +160,21 @@ export const analyzeXRayJob = inngest.createFunction(
                     { aiAnalysis, status: "analyzed" },
                     { new: true },
                 )
-                .lean(); // Use lean() since we are going to modify the object
+                .lean();
 
             if (!updatedLabResult) {
                 throw new NonRetriableError("Lab result not found");
             }
 
-            // 2. Manually fetch the Patient from the 'user' collection
             const patient = await mongoose.connection.collection("user").findOne(
                 { _id: new mongoose.Types.ObjectId(updatedLabResult.patient) },
-                { projection: { password: 0, emailVerified: 0 } }, // Exclude sensitive fields
+                { projection: { password: 0, emailVerified: 0 } },
             );
 
-            // 3. Attach the patient data to the result (mimicking populate)
-            const resultWithPatient = {
+            return {
                 ...updatedLabResult,
-                patient: patient || null, // Replace the ID with the actual user object
+                patient: patient || null,
             };
-
-            // Now you can use it or send it
-            return resultWithPatient;
-
         });
 
         await step.run("send-notification", async () => {

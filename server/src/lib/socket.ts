@@ -14,8 +14,6 @@ export const initSocket = (server: HttpServer) => {
             socket.join(role === "admin" ? "admin_room" : "medical_room"),
         );
         socket.on("notify_user_created", () => {
-            console.log(`notify_user_created from ${socket.id}`);
-            // broadcast to everyone except sender
             socket.emit("notify_user_created");
         });
     });
