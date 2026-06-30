@@ -28,6 +28,7 @@ export interface LabResult {
   aiAnalysis: string;
   status: "pending" | "analyzed" | "reviewed";
   doctorNotes: string;
+  nurseNotes: string;
   createdAt: string;
 }
 

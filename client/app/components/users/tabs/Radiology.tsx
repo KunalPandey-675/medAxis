@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { getPatientLabResults, updateLabResult } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea"; 
+import { Textarea } from "@/components/ui/textarea";
 import {
   BrainCircuit,
   Scan,
@@ -12,6 +12,7 @@ import {
   Pencil,
   X,
   Check,
+  HeartPulse,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import XRayUploadModal from "../XRayUploadModal";
@@ -23,12 +24,10 @@ import { socket } from "@/lib/socket";
 
 // ── Parses the AI markdown-style response into clean JSX ──────────────────────
 const FormattedAIAnalysis = ({ text }: { text: string }) => {
-  // Split on the Disclaimer boundary first
   const disclaimerSplit = text.split(/\*\*Disclaimer:\*\*/i);
   const mainText = disclaimerSplit[0].trim();
   const disclaimer = disclaimerSplit[1]?.trim();
 
-  // Split main text into numbered sections: "1. **Heading:** body"
   const sections = mainText
     .split(/(?=\d+\.\s+\*\*)/)
     .map((s) => s.trim())
@@ -37,14 +36,16 @@ const FormattedAIAnalysis = ({ text }: { text: string }) => {
   return (
     <div className="space-y-3">
       {sections.map((section, i) => {
-        // Extract heading and body
         const headingMatch = section.match(/^\d+\.\s+\*\*(.+?):\*\*\s*([\s\S]*)$/);
-        if (!headingMatch) return <p key={i} className="text-xs text-slate-600 dark:text-slate-400">{section}</p>;
+        if (!headingMatch)
+          return (
+            <p key={i} className="text-xs text-slate-600 dark:text-slate-400">
+              {section}
+            </p>
+          );
 
         const heading = headingMatch[1];
         const body = headingMatch[2].trim();
-
-        // Split body into bullet points (lines starting with "* ")
         const bullets = body
           .split(/\*\s+/)
           .map((b) => b.trim())
@@ -57,7 +58,10 @@ const FormattedAIAnalysis = ({ text }: { text: string }) => {
             </p>
             <ul className="space-y-1">
               {bullets.map((bullet, j) => (
-                <li key={j} className="flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                <li
+                  key={j}
+                  className="flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed"
+                >
                   <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0" />
                   <span>{bullet}</span>
                 </li>
@@ -84,10 +88,15 @@ const Radiology = ({ patientId }: { patientId: string }) => {
   const { data: session } = authClient.useSession();
   const isDoctor =
     session?.user?.role === "doctor" || session?.user?.role === "admin";
+  const isNurse = session?.user?.role === "nurse";
 
-  //  Inline Edit State
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [notesContent, setNotesContent] = useState("");
+  // Doctor inline edit state
+  const [editingDoctorId, setEditingDoctorId] = useState<string | null>(null);
+  const [doctorNotesContent, setDoctorNotesContent] = useState("");
+
+  // Nurse inline edit state
+  const [editingNurseId, setEditingNurseId] = useState<string | null>(null);
+  const [nurseNotesContent, setNurseNotesContent] = useState("");
 
   const {
     data: xrays,
@@ -116,34 +125,50 @@ const Radiology = ({ patientId }: { patientId: string }) => {
     mutationFn: updateLabResult,
     onSuccess: () => {
       toast.success("Notes saved successfully");
-      setEditingId(null);
-      refetch(); // Refresh the list to show new notes
+      setEditingDoctorId(null);
+      setEditingNurseId(null);
+      refetch();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to save notes");
     },
   });
 
-  // editing handlers
-  const startEditing = (xray: LabResult) => {
-    setEditingId(xray._id);
-    setNotesContent(xray.doctorNotes || "");
+  // Doctor editing handlers
+  const startDoctorEditing = (xray: LabResult) => {
+    setEditingDoctorId(xray._id);
+    setDoctorNotesContent(xray.doctorNotes || "");
   };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setNotesContent("");
+  const cancelDoctorEditing = () => {
+    setEditingDoctorId(null);
+    setDoctorNotesContent("");
   };
-
-  const saveNotes = (xrayId: string) => {
+  const saveDoctorNotes = (xrayId: string) => {
     updateNotesMutation.mutate({
       id: xrayId,
       data: {
-        doctorNotes: notesContent,
-        status: "reviewed", // Automatically mark as reviewed when notes are added
+        doctorNotes: doctorNotesContent,
+        status: "reviewed",
       },
     });
   };
+
+  // Nurse editing handlers
+  const startNurseEditing = (xray: LabResult) => {
+    setEditingNurseId(xray._id);
+    setNurseNotesContent(xray.nurseNotes || "");
+  };
+  const cancelNurseEditing = () => {
+    setEditingNurseId(null);
+    setNurseNotesContent("");
+  };
+  const saveNurseNotes = (xrayId: string) => {
+    updateNotesMutation.mutate({
+      id: xrayId,
+      data: { nurseNotes: nurseNotesContent },
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -172,6 +197,7 @@ const Radiology = ({ patientId }: { patientId: string }) => {
                 {new Date(xray.createdAt).toLocaleDateString()}
               </div>
             </div>
+
             {/* Header Section */}
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-sm font-bold flex justify-between items-center">
@@ -190,6 +216,7 @@ const Radiology = ({ patientId }: { patientId: string }) => {
                 </Badge>
               </CardTitle>
             </CardHeader>
+
             {/* Content / Notes Section */}
             <CardContent className="p-4 pt-0 space-y-3">
               {/* 1. AI Analysis Box */}
@@ -203,31 +230,30 @@ const Radiology = ({ patientId }: { patientId: string }) => {
                   <p className="text-xs text-slate-500 italic">Analysis pending...</p>
                 )}
               </div>
+
               {/* 2. Doctor Notes Box */}
               <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-md relative group">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-[11px] uppercase tracking-wider">
                     <Stethoscope className="h-3.5 w-3.5" /> Doctor's Notes
                   </div>
-
-                  {/* Edit Button (Only show if Doctor and NOT currently editing this item) */}
-                  {isDoctor && editingId !== xray._id && (
+                  {isDoctor && editingDoctorId !== xray._id && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 text-blue-600 hover:text-blue-800 hover:bg-blue-100 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => startEditing(xray)}
+                      onClick={() => startDoctorEditing(xray)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   )}
                 </div>
-                {/* --- EDIT MODE OR VIEW MODE --- */}
-                {editingId === xray._id ? (
+
+                {editingDoctorId === xray._id ? (
                   <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
                     <Textarea
-                      value={notesContent}
-                      onChange={(e) => setNotesContent(e.target.value)}
+                      value={doctorNotesContent}
+                      onChange={(e) => setDoctorNotesContent(e.target.value)}
                       placeholder="Add clinical observations, diagnosis, or recommendations..."
                       className="min-h-20 text-xs bg-white dark:bg-slate-900"
                       autoFocus
@@ -237,14 +263,14 @@ const Radiology = ({ patientId }: { patientId: string }) => {
                         variant="ghost"
                         size="sm"
                         className="h-7 text-xs"
-                        onClick={cancelEditing}
+                        onClick={cancelDoctorEditing}
                       >
                         <X className="h-3.5 w-3.5 mr-1" /> Cancel
                       </Button>
                       <Button
                         size="sm"
                         className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
-                        onClick={() => saveNotes(xray._id)}
+                        onClick={() => saveDoctorNotes(xray._id)}
                         disabled={updateNotesMutation.isPending}
                       >
                         {updateNotesMutation.isPending ? (
@@ -263,6 +289,70 @@ const Radiology = ({ patientId }: { patientId: string }) => {
                     ) : (
                       <span className="text-slate-400 dark:text-slate-500 not-italic">
                         No clinical notes added yet.
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+
+              {/* 3. Nurse Notes Box */}
+              <div className="p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-md relative group">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
+                    <HeartPulse className="h-3.5 w-3.5" /> Nurse's Notes
+                  </div>
+                  {isNurse && editingNurseId !== xray._id && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => startNurseEditing(xray)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+
+                {editingNurseId === xray._id ? (
+                  <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
+                    <Textarea
+                      value={nurseNotesContent}
+                      onChange={(e) => setNurseNotesContent(e.target.value)}
+                      placeholder="Add nursing observations, patient condition, or care notes..."
+                      className="min-h-20 text-xs bg-white dark:bg-slate-900"
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={cancelNurseEditing}
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" /> Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => saveNurseNotes(xray._id)}
+                        disabled={updateNotesMutation.isPending}
+                      >
+                        {updateNotesMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5 mr-1" />
+                        )}
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">
+                    {xray.nurseNotes ? (
+                      `"${xray.nurseNotes}"`
+                    ) : (
+                      <span className="text-slate-400 dark:text-slate-500 not-italic">
+                        No nursing notes added yet.
                       </span>
                     )}
                   </p>

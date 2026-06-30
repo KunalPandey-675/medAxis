@@ -129,7 +129,7 @@ export const updateLabResult = async ({
     data,
 }: {
     id: string;
-    data: { doctorNotes?: string; status?: string };
+    data: { doctorNotes?: string; nurseNotes?: string; status?: string };
 }) => {
     const res = await fetch(`${API_URL}/lab-results/${id}`, {
         method: "PUT",

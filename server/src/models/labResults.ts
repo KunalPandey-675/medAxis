@@ -8,6 +8,7 @@ export interface ILabResult extends Document {
   imageUrl?: string; // The UTApi URL
   aiAnalysis?: string; // AI generated text
   doctorNotes?: string; // Human doctor's conclusion
+  nurseNotes?: string; // Nurse's observations and care notes
   status: "pending" | "analyzed" | "reviewed";
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +24,7 @@ const LabResultSchema: Schema = new Schema(
 
     aiAnalysis: { type: String, default: "Pending Analysis..." },
     doctorNotes: { type: String },
+    nurseNotes: { type: String },
 
     status: {
       type: String,

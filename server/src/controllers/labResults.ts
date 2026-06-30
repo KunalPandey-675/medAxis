@@ -80,13 +80,14 @@ export const getPatientLabResults = async (req: Request, res: Response) => {
 export const updateLabResult = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { aiAnalysis, doctorNotes, status } = req.body;
+        const { aiAnalysis, doctorNotes, nurseNotes, status } = req.body;
         const updatedResult = await labResults.findOneAndUpdate(
             { _id: id },
             {
                 $set: {
                     ...(aiAnalysis && { aiAnalysis }),
                     ...(doctorNotes && { doctorNotes }),
+                    ...(nurseNotes !== undefined && { nurseNotes }),
                     ...(status && { status }),
                 },
             },
