@@ -1,6 +1,6 @@
 import { Card, CardContent } from "~/components/ui/card";
 import type { Route } from "../+types/root";
-import { Activity, AlertCircle, ChevronRight, Lock, Mail } from "lucide-react";
+import { AlertCircle, ChevronRight, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Navigate } from "react-router";
 import { CustomInput } from "@/components/global/CustomInput";
@@ -62,7 +62,6 @@ const Login = () => {
                     navigate("/dashboard");
                 },
                 onError: (ctx) => {
-                    // ctx.error.message contains the server response (e.g. "Invalid password")
                     setGlobalError(ctx.error.message);
                 },
             },
@@ -75,10 +74,9 @@ const Login = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
             <Card className="rounded-lg shadow-2xl card backdrop-blur-xl">
                 <CardContent className="p-10 min-w-100 md:min-w-140.5">
-                    {/* logo */}
                     <div className="flex flex-col items-center mb-10">
-                        <div className="bg-linear-to-tr from-blue-600 to-indigo-600 p-3 rounded-2xl shadow-lg shadow-blue-500/30 mb-4">
-                            <Activity className="text-white w-8 h-8" />
+                        <div className="bg-white/5 border border-border p-3 rounded-2xl shadow-lg mb-4">
+                            <img src="/logo.svg" alt="MedAxis" className="w-10 h-10" />
                         </div>
                         <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                             Med Axis
@@ -87,7 +85,6 @@ const Login = () => {
                             Secure Provider Portal
                         </p>
                     </div>
-                    {/* global error */}
                     {globalError && (
                         <div className="mb-6 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 p-4 rounded-2xl text-sm flex items-center gap-3 border border-red-100 dark:border-red-900/50 animate-in slide-in-from-top-2 fade-in">
                             <AlertCircle size={18} className="shrink-0" />
@@ -96,7 +93,6 @@ const Login = () => {
                     )}
 
                     <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-                        {/* input(custom) */}
                         <CustomInput
                             control={form.control}
                             name="email"

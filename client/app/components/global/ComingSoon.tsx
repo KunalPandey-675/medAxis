@@ -22,7 +22,6 @@ const ComingSoon = ({
             className="flex flex-col items-center justify-center min-h-[60vh] w-full px-4 text-center"
         >
             <div className="relative mb-8 mt-12">
-                {/* Background glow */}
                 <div className="absolute inset-0 blur-3xl opacity-20 bg-primary rounded-full animate-pulse"></div>
 
                 <div className="relative bg-card/50 backdrop-blur-xl border border-border p-6 rounded-3xl shadow-xl">

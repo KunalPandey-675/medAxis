@@ -13,8 +13,7 @@ export default [
         route("activities-log", "routes/protected/ActivitiesLog.tsx"),
         route("profile/:id", "routes/protected/Profile.tsx"),
         route("financial-history", "routes/protected/FinancialHistory.tsx"),
-        
-        // Under Construction Routes
+
         route("pharmacy", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy" }),
         route("pharmacy/dispense", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy-dispense" }),
         route("pharmacy/inventory", "routes/protected/UnderConstruction.tsx", { id: "uc-pharmacy-inventory" }),
@@ -32,10 +31,7 @@ export default [
         route("settings/roles", "routes/protected/UnderConstruction.tsx", { id: "uc-settings-roles" }),
         route("settings/billing", "routes/protected/UnderConstruction.tsx", { id: "uc-settings-billing" }),
 
-        // Fallback for missing protected routes
         route("*", "routes/NotFound.tsx", { id: "not-found-protected" }),
     ]),
-    
-    // Fallback for any non-protected routes as well
     route("*", "routes/NotFound.tsx", { id: "not-found-public" }),
 ] satisfies RouteConfig;

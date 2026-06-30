@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Activity, Calendar, Shield, Users, Stethoscope, ArrowUpRight } from "lucide-react";
+import { ArrowRight, Calendar, Shield, Users, Stethoscope, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function meta({}: Route.MetaArgs) {
@@ -27,9 +27,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Activity className="h-5 w-5" />
-            </div>
+            <img src="/logo.svg" alt="MedAxis" className="h-8 w-8" />
             <span className="font-heading text-xl font-bold tracking-tight">MedAxis</span>
           </div>
           <div className="hidden md:flex gap-8 text-sm font-medium text-muted-foreground">
@@ -251,9 +249,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12 mb-12">
             <div className="col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground">
-                  <Activity className="h-4 w-4" />
-                </div>
+                <img src="/logo.svg" alt="MedAxis" className="h-6 w-6" />
                 <span className="font-heading text-lg font-bold">MedAxis</span>
               </div>
               <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">

@@ -58,7 +58,6 @@ const ActivitiesLog = () => {
     const logs = data?.res || [];
     const pagination = data?.pagination;
 
-    // Optional: Filter local results by name for UX (Full search should be backend-side)
     const filteredLogs = logs?.filter((log) =>
         log?.action.toLowerCase().includes(search.toLowerCase()),
     );

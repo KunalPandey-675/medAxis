@@ -12,11 +12,7 @@ import "./app.css";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ThemeProvider } from "./components/provider/theme";
 import ToastProvider from "./components/provider/toast";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
@@ -76,9 +72,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
-  const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

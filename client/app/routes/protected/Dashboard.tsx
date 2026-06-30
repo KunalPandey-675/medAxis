@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
-import { getUsers } from "@/lib/api"; // Ensure these exist
+import { getUsers } from "@/lib/api";
 import Loader from "@/components/global/Loader";
 import { useNavigate } from "react-router";
 import type { Role } from "@/types";
@@ -20,10 +20,9 @@ export default function HMSDashboard() {
   const user = session?.user;
 
   if (user?.role === "patient") {
-    navigate(`/profile/${session?.user.id}`); // 👈 Redirect user after login
+    navigate(`/profile/${session?.user.id}`);
   }
 
-  // Fetch users for StatsCards calculation
   const { data: userData, isLoading: isDataLoading } = useQuery({
     queryKey: ["patients"],
     queryFn: () => getUsers({ role: "patient", limit: 100 }),
@@ -41,7 +40,6 @@ export default function HMSDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* 1. Welcome & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight">
@@ -54,14 +52,10 @@ export default function HMSDashboard() {
         <QuickActions role={user?.role as Role} />
       </div>
 
-      {/* 2. Top Level Stats (The component we built earlier) */}
       <StatsCards data={userData?.res || []} />
 
-      {/* 3. Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* LEFT COLUMN (8 Units) */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Admin-Only: Financial Trends */}
           {isAdmin && (
             <section className="card p-6 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold mb-6">Revenue Overview</h3>
@@ -69,10 +63,8 @@ export default function HMSDashboard() {
             </section>
           )}
         </div>
-        {/* RIGHT COLUMN (4 Units) */}
         {isAdmin &&
           <div className="lg:col-span-4 space-y-8">
-            {/* Recent Activity (Lab results, admissions, payments) */}
             <section className="card p-6 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold mb-4">Recent Activity</h3>
               <RecentActivity />

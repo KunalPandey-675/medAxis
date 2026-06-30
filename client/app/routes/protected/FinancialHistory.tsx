@@ -74,12 +74,10 @@ const FinancialHistory = () => {
     const invoices = data?.res || [];
     const pagination = data?.pagination;
 
-    // Optional: Filter local results by name for UX (Full search should be backend-side)
     const filteredInvoices = invoices.filter((inv) =>
         inv.user?.name.toLowerCase().includes(search.toLowerCase()),
     );
 
-    // Helper for Status Badge
     const getStatusBadge = (status: string) => {
         switch (status.toLowerCase()) {
             case "paid":
@@ -116,7 +114,6 @@ const FinancialHistory = () => {
                 </div>
             </div>
 
-            {/* --- FINANCIAL OVERVIEW CARDS --- */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="card shadow-sm rounded-xl">
                     <CardContent className="p-6">
@@ -182,7 +179,6 @@ const FinancialHistory = () => {
                     </CardContent>
                 </Card>
             </div>
-            {/* --- MAIN TABLE --- */}
             <Card className="card shadow-sm rounded-xl overflow-hidden">
                 <CardHeader className="flex justify-between">
                     <div className="">
@@ -191,7 +187,6 @@ const FinancialHistory = () => {
                             Click on an invoice to view full itemized breakdown.
                         </CardDescription>
                     </div>
-                    {/* Quick Search */}
                     <GlobalSearch
                         search={search}
                         setSearch={setSearch}

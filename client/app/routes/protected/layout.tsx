@@ -24,18 +24,14 @@ const Layout = () => {
   useEffect(() => {
     if (isPending) return;
 
-    // 2. Find configuration for current path
-    // We combine all arrays to search through everything
     const allNavItems = [...navConfig.navMain];
     const currentRouteConfig = getRouteConfig(pathname, allNavItems);
 
-    // 3. Check Permissions
     if (currentRouteConfig) {
       const hasAccess = currentRouteConfig.allowedRoles.includes(userRole);
 
       if (!hasAccess) {
         toast.error("Unauthorized Access");
-        // Redirect to a safe page based on role, or just dashboard
         navigate("/dashboard", { replace: true });
       }
     }

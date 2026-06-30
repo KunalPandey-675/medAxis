@@ -51,18 +51,16 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
         setIsSheetOpen(true);
     };
 
-    //   fetch using tanstack query
     const { data, isLoading, isError, refetch } = useQuery({
         queryKey: fetchQueryKey,
         queryFn: () => getUsers({ role, page, limit: 10 }),
         placeholderData: (previousData) => previousData,
         subscribed: true,
     });
-    console.log('data', data)
     const users = data?.res || [];
     const pagination = data?.pagination;
 
-    // socket.io listener for real-time updates
+
     useEffect(() => {
         if (!socket.connected) socket.connect();
 
@@ -77,11 +75,9 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
         };
     }, [refetch]);
 
-    // activity mutation
     const activityMutation = useMutation({
         mutationFn: createActityLog,
         onError: (error) => {
-            console.log("Activity Log Error:", error);
             toast.error(error.message || "Failed to create activity log");
         },
     });
@@ -104,12 +100,10 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
         );
     }
 
-    // // filter
     const filteredUsers = users?.filter((user) =>
         user?.name.toLowerCase().includes(search.toLowerCase()),
     );
 
-    // ban users
     const banUser = async (banned: boolean, userId: string) => {
         try {
             setLoading(true);
@@ -136,12 +130,10 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
             }
         } catch (error) {
             setLoading(false);
-            console.error("Error banning/unbanning user:", error);
             toast.error("An error occurred. Please try again.");
         }
     };
 
-    // // delete
     const deleteUser = async (userId: string) => {
         try {
             setLoading(true);
@@ -161,16 +153,14 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
             }
         } catch (error) {
             setLoading(false);
-            console.error("Error deleting user:", error);
+
             toast.error("An error occurred. Please try again.");
         }
     };
     return (
 
         <div className="space-y-6">
-            {/* startcards */}
             <StatsCards data={users} />
-            {/* userDetailsSheet */}
             <DetailsSheet
                 user={selectedUser}
                 isOpen={isSheetOpen}
@@ -329,7 +319,6 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
                                 )}
                             </TableBody>
                         </Table>
-                        {/* pagination */}
                         <CustomPagination
                             loading={isLoading}
                             totalPages={pagination?.totalPages || 0}
@@ -340,7 +329,6 @@ const UserManagement = ({ role, title, description }: UserManagementProps) => {
                 </CardContent>
             </Card>
         </div>
-        // <div>UserManagement</div>
     );
 };
 

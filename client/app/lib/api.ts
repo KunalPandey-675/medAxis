@@ -39,7 +39,6 @@ export const triggerAdmission = async ({
     patientId: string;
     admissionReason: string;
 }) => {
-    // /:id/admit
     const res = await fetch(`${API_URL}/users/${patientId}/admit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,11 +51,9 @@ export const triggerAdmission = async ({
 
 interface UpdateUserParams {
     userId: string;
-    userData: Partial<User> & Record<string, any>; // Allow custom fields
+    userData: Partial<User> & Record<string, any>;
 }
 
-
-// /update/:id
 export const updateUser = async ({ userId, userData }: UpdateUserParams) => {
     const res = await fetch(`${API_URL}/users/update/${userId}`, {
         method: "PUT",
@@ -248,7 +245,7 @@ export const fetchNotifications = async () => {
         credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch notifications");
-    return res.json(); // Expected response: { notifications:[], unreadCount: 0 }
+    return res.json();
 };
 
 export const markAsRead = async (id: string) => {

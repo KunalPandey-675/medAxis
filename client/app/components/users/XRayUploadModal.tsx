@@ -39,7 +39,7 @@ const XRayUploadModal = ({ patientId }: { patientId: string }) => {
 
   const deleteMutation = useMutation({
     mutationFn: deleteFile,
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       setImageUrl("");
       toast.success("File deleted successfully!");
     },
@@ -89,7 +89,6 @@ const XRayUploadModal = ({ patientId }: { patientId: string }) => {
             }}
             onUploadError={(error: Error) => {
               toast.error(`ERROR! ${error.message}`);
-              console.error("Upload Error:", error);
             }}
             content={{
               label: "Drop your X-Ray image here",

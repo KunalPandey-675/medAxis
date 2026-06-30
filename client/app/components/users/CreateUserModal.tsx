@@ -47,7 +47,7 @@ interface UserModalProps {
 
 const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
     const [open, setOpen] = useState(false);
-    const [isCreating, setIsCreating] = useState(false); // Local loading for Create
+    const [isCreating, setIsCreating] = useState(false);
 
     const isEdit = !!user;
     const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
@@ -68,7 +68,6 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
             status: role === "patient" ? "admitted" : "active",
         },
     });
-    // Reset form logic...
     useEffect(() => {
         if (open) {
             if (user) {
@@ -100,13 +99,10 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
             }
         }
     }, [open, user, form, role]);
-    //   console.log(user);
 
-    // Mutation for patient admission trigger
     const admitMutation = useMutation({
         mutationFn: triggerAdmission,
-        onSuccess: (data, variables) => {
-            // A. Notification
+        onSuccess: () => {
             toast.success("User admitted successfully!");
             setOpen(false);
             form.reset();
@@ -116,11 +112,9 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
         },
     });
 
-    // update mutation
     const updateMutation = useMutation({
         mutationFn: updateUser,
-        onSuccess: (data, variables) => {
-            // A. Notification
+        onSuccess: () => {
             toast.success("User updated successfully!");
             setOpen(false);
             form.reset();
@@ -130,17 +124,14 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
         },
     });
 
-    // activity mutation
     const activityMutation = useMutation({
         mutationFn: createActityLog,
         onError: (error) => {
-            console.log("Activity Log Error:", error);
             toast.error(error.message || "Failed to create activity log");
         },
     });
 
     const onSubmit = async (data: UserValues) => {
-        // Prepare flattened payload
         const payload: any = {
             name: data.name,
             email: data.email,
@@ -148,7 +139,6 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
             status: data.status,
         };
 
-        // Add role specific fields
         if (role === "doctor") {
             payload.specialization = data.specialization;
             payload.department = data.department;
@@ -162,19 +152,15 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
         }
 
         if (isEdit && user) {
-            // --- UPDATE (Using TanStack Mutation) ---
-            // If password is provided, add it to payload
             if (data.password) {
                 payload.password = data.password;
             }
 
-            // Trigger Mutation
             updateMutation.mutate({
-                userId: user._id, // Handle ID mismatch
+                userId: user._id,
                 userData: payload,
             });
         } else {
-            // create
             setIsCreating(true);
             const { error, data: createdUser } = await authClient.admin.createUser({
                 name: data.name,
@@ -182,9 +168,8 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                 password: data.password!,
                 // @ts-ignore
                 role: role,
-                // authClient needs `data: {}`.
                 data: {
-                    ...payload, // Pass the custom fields here for creation
+                    ...payload,
                 },
             });
 
@@ -193,7 +178,6 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                 throw error;
             }
             if (createdUser && role === "patient" && data.status === "admitted") {
-                // handle admission(trigger)
                 admitMutation.mutate({
                     patientId: createdUser.user.id,
                     admissionReason: data.medicalHistory || "General Admission",
@@ -270,8 +254,6 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                         startIcon={<Lock size={18} />}
                     />
 
-                    {/* ... Role specific inputs (Doctor/Patient/Nurse) ... */}
-                    {/* --- DOCTOR FIELDS --- */}
                     {role === "doctor" && (
                         <>
                             <CustomSelect
@@ -290,7 +272,6 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                             />
                         </>
                     )}
-                    {/* --- PATIENT FIELDS --- */}
                     {role === "patient" && (
                         <>
                             <div className="grid grid-cols-2 gap-4">
@@ -341,7 +322,6 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                             startIcon={<Building2 size={18} />}
                         />
                     )}
-                    {/* footer */}
                     <DialogFooter className="mt-6 border-none">
                         <Button
                             type="button"

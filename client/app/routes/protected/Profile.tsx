@@ -42,7 +42,6 @@ const Profile = () => {
     const isViewingOwnProfile = loggedInUser?.id === targetUserId;
     const isAdmin = loggedInUser?.role === "admin";
 
-    // 1. Fetch Profile User
     const { data: profileUser, isLoading: profileLoading } = useQuery({
         queryKey: ["user", targetUserId],
         queryFn: () => getUserById(targetUserId!),
@@ -52,14 +51,12 @@ const Profile = () => {
     const isPatient = profileUser?.role === "patient";
     const isDischarged = profileUser?.status === "discharged";
 
-    // 2. Fetch Active Invoice (Only for patients - own or if admin)
     const { data: invoice, isLoading: invoiceLoading } = useQuery({
         queryKey: ["my-invoice", targetUserId],
         queryFn: getMyActiveInvoice,
         enabled: !!targetUserId && isPatient && (isViewingOwnProfile || isAdmin),
     });
 
-    // 3. Fetch Billing History (👈 NEW)
     const { data: billingHistory, isLoading: historyLoading } = useQuery({
         queryKey: ["billing-history", targetUserId],
         queryFn: () => getBillingHistory(targetUserId!),
@@ -101,7 +98,6 @@ const Profile = () => {
                 {isViewingOwnProfile ? "My Profile" : `${profileUser.name}'s Profile`}
             </h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* --- LEFT COLUMN: IDENTITY --- */}
                 <Card className="col-span-1 card shadow-sm h-min">
                     <CardContent className="p-6 flex flex-col items-center text-center">
                         <Avatar className="h-24 w-24 mb-4 border-4 border-white dark:border-slate-800 shadow-sm">
@@ -122,9 +118,7 @@ const Profile = () => {
                         </div>
                     </CardContent>
                 </Card>
-                {/* --- RIGHT COLUMN: DETAILS & BILLING --- */}
                 <div className="col-span-1 md:col-span-2 space-y-6">
-                    {/* Details Section */}
                     <Card className="card shadow-sm">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg flex items-center gap-2">
@@ -161,7 +155,6 @@ const Profile = () => {
                             )}
                         </CardContent>
                     </Card>
-                    {/* ACTIVE BILLING PORTAL (Current Bill) */}
                     {isPatient && (isViewingOwnProfile || isAdmin) && (
                         <Card className="card shadow-sm overflow-hidden border-l-4 border-l-blue-500">
                             <CardHeader className="">
@@ -229,7 +222,6 @@ const Profile = () => {
                             </CardContent>
                         </Card>
                     )}
-                    {/* BILLING HISTORY (Past Payments) 👈 NEW SECTION */}
                     {isPatient && (isViewingOwnProfile || isAdmin) && (
                         <Card className="card shadow-sm">
                             <CardHeader>

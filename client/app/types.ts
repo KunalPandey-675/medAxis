@@ -6,24 +6,17 @@ export type Role =
   | "pharmacist"
   | "lab_tech"
   | "patient";
-// src/types/index.ts
 
-// --- 1. PATIENT STATUSES ---
-// Clinical states for patients
 export type PatientStatus =
   | "admitted"
   | "in_treatment"
   | "observation"
   | "discharged"
   | "follow_up"
-  | "deceased"; // Optional, but common in HMS
+  | "deceased";
 
-// --- 2. STAFF STATUSES ---
-// Employment/Availability states for Doctors, Nurses, etc.
 export type StaffStatus = "active" | "on_leave" | "suspended" | "resigned";
 
-// --- 3. COMBINED USER STATUS ---
-// The actual type used in the generic User interface
 export type UserStatus = PatientStatus | StaffStatus;
 
 export interface LabResult {
@@ -39,7 +32,7 @@ export interface LabResult {
 }
 
 export interface User {
-  _id: string; // MongoDB uses _id. Change to 'id' if you transform it on backend.
+  _id: string;
   name: string;
   email: string;
   image?: string | null;
@@ -48,7 +41,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   status: UserStatus;
-  banned: boolean; // For staff, indicates if they are banned from the system
+  banned: boolean;
   specialization?: string;
   gender?: string;
   bloodgroup?: string;
@@ -96,8 +89,8 @@ export interface WebPushSubscription {
 
 export interface ActivityLog {
   _id: string;
-  user: User; // Who did it?
-  action: string; // "Created Exam", "Registered Student"
+  user: User;
+  action: string;
   details?: string;
   createdAt: Date;
 }
@@ -105,15 +98,15 @@ export interface ActivityLog {
 export interface invoice {
   _id: string;
   user: User;
-  polarCheckoutId?: string; // Links to Polar transaction
+  polarCheckoutId?: string;
   status: "draft" | "pending_payment" | "paid";
   items: Array<{
-    description: string; // e.g., "Chest X-Ray"
+    description: string;
     quantity: number;
-    unitPrice: number; // in cents (Polar uses cents)
+    unitPrice: number;
     totalPrice: number;
   }>;
-  totalAmount: number; // Sum of all items in cents
+  totalAmount: number;
   createdAt: Date;
 }
 
@@ -127,6 +120,6 @@ export interface appointment {
   reason: string;
   status: "scheduled" | "confirmed" | "completed" | "cancelled" | "in-progress";
   isVirtual: boolean;
-  meetingId: string; // Used as the LiveKit Room Name
+  meetingId: string;
   createdAt: Date;
 }
