@@ -8,7 +8,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import type { Role, User } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Loader2,
@@ -48,6 +48,7 @@ interface UserModalProps {
 const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
     const [open, setOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const emailAutoFilled = useRef(false);
 
     const isEdit = !!user;
     const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
@@ -98,7 +99,31 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                 });
             }
         }
+        emailAutoFilled.current = false;
     }, [open, user, form, role]);
+
+    // Auto-generate email from name when creating a new user
+    useEffect(() => {
+        if (isEdit || !open) return;
+        const subscription = form.watch((value, { name: fieldName }) => {
+            if (fieldName !== "name") return;
+            const rawName = value.name || "";
+            const sanitized = rawName
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, ".")
+                .replace(/[^a-z0-9.]/g, "");
+            if (sanitized) {
+                const generated = `${sanitized}.${role}@hospital.com`;
+                form.setValue("email", generated, { shouldValidate: true });
+                emailAutoFilled.current = true;
+            } else if (emailAutoFilled.current) {
+                form.setValue("email", "", { shouldValidate: false });
+                emailAutoFilled.current = false;
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [isEdit, open, role, form]);
 
     const admitMutation = useMutation({
         mutationFn: triggerAdmission,
@@ -264,14 +289,21 @@ const CreateUserModal = ({ role, user, loading }: UserModalProps) => {
                         startIcon={<UserIcon size={18} />}
                     />
 
-                    <CustomInput
-                        control={form.control}
-                        name="email"
-                        label="Email Address"
-                        type="email"
-                        placeholder="john@hospital.com"
-                        startIcon={<Mail size={18} />}
-                    />
+                    <div className="space-y-1">
+                        <CustomInput
+                            control={form.control}
+                            name="email"
+                            label="Email Address"
+                            type="email"
+                            placeholder={`john.doe.${role}@hospital.com`}
+                            startIcon={<Mail size={18} />}
+                        />
+                        {!isEdit && (
+                            <p className="text-xs text-muted-foreground pl-1">
+                                ✨ Auto-generated from name — you can edit it manually.
+                            </p>
+                        )}
+                    </div>
 
                     <CustomInput
                         control={form.control}
